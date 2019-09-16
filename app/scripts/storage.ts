@@ -14,7 +14,9 @@ export interface OptionItems {
     almaStart: boolean;
     almaStartPDFs: boolean;
     stayAlive: boolean;
-    
+    googleApiCredentials: string;
+    googleApiAccount: string;
+    sheetId: string;
 }
 
 export var options = StorageArea.create<OptionItems>({
@@ -27,6 +29,9 @@ export var options = StorageArea.create<OptionItems>({
         almaStart: false,
         almaStartPDFs: true,
         stayAlive: false,
+        googleApiCredentials: '',
+        googleApiAccount: '',
+        sheetId: '',
     },
     storageArea: 'sync'
 });

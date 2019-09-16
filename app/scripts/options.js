@@ -16,6 +16,11 @@ import SvgIcon from '@material-ui/core/SvgIcon'
 import CheckIcon from '@material-ui/icons/Check'
 
 import { options, useStore, inputId } from './storage';
+import FileInput from './components/FileInput/FileInput';
+
+import {saveNote} from './alma'
+// import EasySheets from 'easy-sheets'
+// import {GoogleSpreadsheet} from 'google-spreadsheet'
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -87,6 +92,9 @@ function closeWindow() {
   window.close();
 }
   
+function log(t) {
+  console.log(t);
+}
 
   
 
@@ -113,6 +121,55 @@ function App() {
 
   function handleTabChange(event, newValue) {
     setTabValue(newValue);
+  }
+
+  async function handleApiCredentialFile(newValue) {
+    await updates['googleApiCredentials'](btoa(JSON.stringify(newValue)))
+    await updates['googleApiAccount'](JSON.parse(newValue).client_email)
+    
+    return true
+  }
+
+  async function testSheet(text) {
+    const SPREADSHEET_ID = await options.get('sheetId')
+    const BASE64_CREDS = await options.get('googleApiCredentials')
+    const creds = atob(BASE64_CREDS)
+
+    var doc = new GoogleSpreadsheet('<spreadsheet key>');
+    var sheet;
+
+    
+
+    doc.useServiceAccountAuth(creds, function() {
+      doc.addWorksheet({
+        title: 'my new sheet'
+      }, function(err, sheet) {
+   
+        // change a sheet's title
+        sheet.setTitle('new title'); //async
+   
+        //resize a sheet
+        sheet.resize({rowCount: 50, colCount: 20}); //async
+   
+        sheet.setHeaderRow(['name', 'age', 'phone']); //async
+   
+        // removing a worksheet
+        
+        
+      });
+
+    });
+    
+    
+
+    //const easySheets = new EasySheets(SPREADSHEET_ID, BASE64_CREDS)
+    //await easySheets.addRow(['Lookslike', 'it works'])
+
+  }
+
+  function testNote() {
+    saveNote("Test. Delete me.")
+
   }
 
   
@@ -238,10 +295,28 @@ function App() {
         control={
           <Switch checked={values['almaStartPDFs']} onChange={e => updates['almaStartPDFs'](e.target.checked)} value="almaStartPDFs" color="primary" ></Switch>
         }
-        label="[Alma Start] Generate PDFs?"
+        label="Generate PDFs?"
       ></FormControlLabel>
       </FormGroup>
-      
+      {/* 
+      <FileInput label="Google Credentials JSON" callback={handleApiCredentialFile}></FileInput>
+      {values['googleApiAccount']}
+      <CssBaseline />
+      <TextField
+        id="sheetId"
+        label="Google Sheets ID"
+        className={classes.textField}
+        fullWidth
+        multiline
+        name="sheetId"
+        value={values['sheetId']}
+        onChange={async (e) => await handleChange(e)}
+        
+    />
+    */}  
+
+    <Button className={classes.button} color="primary" size="small" onClick={testNote}
+    >Test Notes</Button>
 
       </TabPanel>
        

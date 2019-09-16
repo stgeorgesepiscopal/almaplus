@@ -4,6 +4,10 @@ export function clearBody(body) {
     return body;
 }
 
+export function isFunction(object) {
+  return !!(object && object.constructor && object.call && object.apply);
+ }
+
 export async function fetchAndUpdate(node) {
   const updateNode = node;
     // https://sges.getalma.com/reports/school-attendance?date=2019-08-27&status=255

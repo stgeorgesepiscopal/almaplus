@@ -7,13 +7,18 @@ const {
     useTypescript,
 } = require('@spadin/webextension-build-utils');
 
+var IgnorePlugin =  require("webpack").IgnorePlugin;
+
 
 var path = require('path');
 
 module.exports = {
+    
     webpack: (config, { dev }) => {
         // Set up source maps to work nicely with the Chrome debugger.
         useSourceMap(config, dev);
+
+        config.plugins.push(new IgnorePlugin(/(^fs$|cptable|jszip|xlsx|^es6-promise$|^net$|^https$|^os$|^crypto$|child_process|^tls$|^forever-agent$|^tough-cookie$|cpexcel|^path$|^request$|react-native|^vertx$)/));
 
         // Build TypeScript files and allow them as entry points.
         useTypescript(config);
