@@ -1,8 +1,8 @@
 {
   "name": "__MSG_appName__",
-  "short_name": "__MSG_appShortName__",
   "description": "__MSG_appDescription__",
   "version": "2019.9.18.1",
+  "short_name": "__MSG_appShortName__",
   "manifest_version": 2,
   "default_locale": "en",
   "icons": {
@@ -16,7 +16,6 @@
       "scripts/omnibox.background.js",
       "scripts/searchintercept.js"
     ]
-    
   },
   "browser_action": {
     "default_icon": {
@@ -65,7 +64,9 @@
     "pages/searchintercept.html"
   ],
   "externally_connectable": {
-    "matches": ["*://*.getalma.com/*"]
+    "matches": [
+      "*://*.getalma.com/*"
+    ]
   },
   "permissions": [
     "activeTab",

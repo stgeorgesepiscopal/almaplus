@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import { Button, TextField, Switch, FormGroup, FormControlLabel, MenuItem, Select, InputLabel } from '@material-ui/core';
+import { Button, TextField, Switch, FormGroup, FormControlLabel, MenuItem, Select, InputLabel, Checkbox } from '@material-ui/core';
 
 import {startCase} from 'lodash'
 
@@ -61,6 +61,15 @@ export function Option(props) {
             return(
                 <FormGroup ><FormControlLabel control={
                     <Switch checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" ></Switch>
+                } label={ label ? label : startCase(name) + "?" }
+                ></FormControlLabel></FormGroup>
+
+            );
+        }
+        if ( type == "checkbox" ){
+            return(
+                <FormGroup ><FormControlLabel control={
+                    <Checkbox checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" ></Checkbox>
                 } label={ label ? label : startCase(name) + "?" }
                 ></FormControlLabel></FormGroup>
 

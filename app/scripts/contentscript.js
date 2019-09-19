@@ -26,6 +26,119 @@ function injectScript(file_path, tag='html', type='script', text='') {
 }
 async function getOptions() {
     const settings = await options.get() ;
+
+    injectScript('', 'html', 'script',`
+
+    function getUrlVars(url) {
+        var vars = {};
+        var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value.replace(/%20/gi, " ");
+        });
+        return vars;
+    }
+
+    function getUrlParam(url, parameter){
+        var urlparameter = '';
+        if(url.indexOf(parameter) > -1){
+            urlparameter = getUrlVars(url)[parameter];
+            }
+        return urlparameter;
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+      
+
+    var searchResults = false;
+
+    var extensionId = "${browser.runtime.id}";
+
+
+
+    const sendMessage = async function(message) {
+        
+        return searchResults ;
+        //results.then( function(r) { console.log("In the then", r); return r;} );
+
+    }
+    
+    var _open = XMLHttpRequest.prototype.open;
+    window.XMLHttpRequest.prototype.open = function (method, URL) {
+        var _onreadystatechange = this.onreadystatechange,
+            _this = this;
+            __this = this;
+
+        _this.onreadystatechange = function () {
+            // catch only completed 'api/search/universal' requests
+            if (_this.readyState === 4 && _this.status === 200 && ~URL.indexOf('/directory/search')) {
+                try {
+                    searchResults = false;
+                    console.log("in readyState")
+                    //////////////////////////////////////
+                    // THIS IS ACTIONS FOR YOUR REQUEST //
+                    //             EXAMPLE:             //
+                    //////////////////////////////////////
+                    // var data = JSON.parse(_this.responseText); // {"fields": ["a","b"]}
+                    var data = []
+                    // data[0].ProfileUrl = "https://sges.getalma.com/directory/search?q=maddie"
+                    console.log(getUrlParam(_this.responseURL, "q"));
+                    console.log("Sending message")
+                    
+                        
+                        chrome.runtime.sendMessage(extensionId, {search: getUrlParam(_this.responseURL, "q")},
+                        function(response) {
+                            console.log("Response: ",response);
+                        if (!response.success) {
+                            
+                            //handleError(url);
+                        }
+                        console.log("In callback")
+                        console.log(response.data)
+                        searchResults = response.data
+                        console.log("about to set property", searchResults);
+                        // rewrite responseText
+                        Object.defineProperty(_this, 'responseText', {value: JSON.stringify(searchResults)});
+                        if (_onreadystatechange) _onreadystatechange.apply(__this, arguments);
+
+                        });
+                        
+                        console.log("After sendMessage")
+                        console.log(searchResults)
+
+                   
+
+                   
+                    
+                    
+                    
+                    /////////////// END //////////////////
+                } catch (e) {}
+
+                console.log('Caught! :)', method, URL/*, _this.responseText*/);
+            }
+            // call original callback
+           
+        };
+
+        // detect any onreadystatechange changing
+        Object.defineProperty(this, "onreadystatechange", {
+            get: function () {
+                return _onreadystatechange;
+            },
+            set: function (value) {
+                _onreadystatechange = value;
+            }
+        });
+
+        return _open.apply(_this, arguments);
+    };
+
+    document.getElementsByName("q")[0].placeholder="Alma+ SuperSearch";
+
+    `
+    );
+
     if (settings.displayChat) {
         injectScript('','html','script',`
         var button = document.getElementsByClassName('switcher')[0].cloneNode(true);

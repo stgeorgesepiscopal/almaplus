@@ -138,9 +138,9 @@ function App() {
       <Option type="switch" name="stayAlive"  />
     </TabPanel>
     <TabPanel value={tabValue} index={3}>
-    <Option type="switch" name="almaStartPDFButtons"  />
-    <Option type="switch" name="almaStartIgnoreEnrolled"  />
-    <Option type="switch" name="almaStartIgnoreApplicants"  />
+    <Option type="checkbox" name="almaStartPDFButtons"  />
+    <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
+    <Option type="checkbox" name="almaStartIgnoreApplicants"  />
       {/* 
       <FileInput label="Google Credentials JSON" callback={handleApiCredentialFile}></FileInput>
       {values['googleApiAccount']}

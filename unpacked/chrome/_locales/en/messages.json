@@ -1,0 +1,18 @@
+{
+  "appName": {
+    "message": "Alma+",
+    "description": "The name of the application"
+  },
+  "appShortName": {
+    "message": "Alma+",
+    "description": "The short_name (maximum of 12 characters recommended) is a short version of the app's name."
+  },
+  "appDescription": {
+    "message": "Alma is an amazing SIS, but there are little things about it that would be more helpful for our school if they were slightly different. This extension attempts to bridge some of those gaps.",
+    "description": "The description of the application"
+  },
+  "browserActionTitle": {
+    "message": "Alma+",
+    "description": "The title of the browser action button"
+  }
+}
