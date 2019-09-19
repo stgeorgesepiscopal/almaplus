@@ -55,6 +55,9 @@ const getProcesses = async function(callback) {
 const getStudentsFromProcesses = async function(data) {
   const subdomain = await options.get('subdomain');
   const oldData = await searchData.get('startStudents'); 
+  const ignoreEnrolled = await options.get('almaStartIgnoreEnrolled');
+  const ignoreApplicants = await options.get('almaStartIgnoreApplicants');
+
   var d = [{}];
   var finished = 0;
 
@@ -68,8 +71,8 @@ const getStudentsFromProcesses = async function(data) {
         var body = clearBody(req.responseText);
         var parser = new DOMParser();
             var doc = parser.parseFromString(body, "text/html");
-
-            if(nodesFromXpath("//a[contains(@data-alma-modal,'WorkflowsAddStudentSisModal')]", doc).length == 0)
+            const enrolled = nodesFromXpath("//a[contains(@data-alma-modal,'WorkflowsAddStudentSisModal')]", doc).length > 0;
+            if( ( !ignoreEnrolled && !ignoreApplicants ) || ( !ignoreEnrolled &&  enrolled ) || ( !ignoreApplicants &&  !enrolled ) )
             {
             var n = nodesFromXpath("//td//a", doc);
             
@@ -84,6 +87,7 @@ const getStudentsFromProcesses = async function(data) {
                   status: encode(node.parentElement.parentElement.children[4].textContent.trim()),
                   updated: encode(node.parentElement.parentElement.children[5].textContent.trim()),
                   process: process.title,
+                  enrolled: enrolled,
                   
                 }
               )
@@ -158,12 +162,22 @@ const main = async function() {
 
     });
 
-    options.apiStudent.addListener((change, key) => {
+    options.apiStudentUUID.addListener((change, key) => {
       console.log(`apiStudent changed from ${change.oldValue} to ${change.newValue}`);
     });
 
     searchData.startStudents.addListener((change, key) => {
       console.log(`startStudents changed`);
+      
+    });
+
+    options.almaStartIgnoreApplicants.addListener((change, key) => {
+       getProcesses(getStudentsFromProcesses);
+      
+    });
+
+    options.almaStartIgnoreEnrolled.addListener((change, key) => {
+       getProcesses(getStudentsFromProcesses);
       
     });
 

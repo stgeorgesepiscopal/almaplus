@@ -7,31 +7,37 @@ import { IStorageAccessor, StorageListener } from '@spadin/webextension-storage'
 
 export interface OptionItems {
     subdomain: string;
-    apiStudent: string;
+    apiStudentUUID: string;
     displayChat: boolean;
     signature: string;
     htmlMessaging: boolean;
     almaStart: boolean;
-    almaStartPDFs: boolean;
+    almaStartPDFButtons: boolean;
+    almaStartIgnoreEnrolled: boolean;
+    almaStartIgnoreApplicants: boolean;
     stayAlive: boolean;
     googleApiCredentials: string;
     googleApiAccount: string;
     sheetId: string;
+    defaultSearch:string;
 }
 
 export var options = StorageArea.create<OptionItems>({
     defaults: {
         subdomain: 'sges',
-        apiStudent: '5d67e14d70a9a1462f24cdc3',
+        apiStudentUUID: '5d67e14d70a9a1462f24cdc3',
         displayChat: false,
         signature: '',
         htmlMessaging: true,
         almaStart: false,
-        almaStartPDFs: true,
+        almaStartPDFButtons: true,
+        almaStartIgnoreEnrolled: false,
+        almaStartIgnoreApplicants: false,
         stayAlive: false,
         googleApiCredentials: '',
         googleApiAccount: '',
         sheetId: '',
+        defaultSearch: '',
     },
     storageArea: 'sync'
 });

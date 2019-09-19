@@ -7,7 +7,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar'
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Box from '@material-ui/core/Box';
+
 import Typography from '@material-ui/core/Typography';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -17,40 +17,12 @@ import CheckIcon from '@material-ui/icons/Check'
 
 import { options, useStore, inputId } from './storage';
 import FileInput from './components/FileInput/FileInput';
+import {Option} from './components/Option/Option';
+import {TabPanel, a11yProps} from './components/TabPanel/TabPanel'
 
 import {saveNote} from './alma'
-// import EasySheets from 'easy-sheets'
-// import {GoogleSpreadsheet} from 'google-spreadsheet'
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <Typography
-      component="div"
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      <Box p={3}>{children}</Box>
-    </Typography>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
+import {closeWindow, log} from './util'
 
 
 const useStyles = makeStyles(theme => ({
@@ -71,32 +43,10 @@ const useStyles = makeStyles(theme => ({
         width: 50,
         
       },
-    textField: {
-      marginLeft: theme.spacing(1),
-      marginRight: theme.spacing(1),
-      marginTop: theme.spacing(2),
-    },
-    dense: {
-      marginTop: theme.spacing(2),
-    },
-    menu: {
-      width: 200,
-    },
+
   }));
 
 
-
-function closeWindow() {
-
-    
-  window.close();
-}
-  
-function log(t) {
-  console.log(t);
-}
-
-  
 
 function App() {
     const classes = useStyles();
@@ -109,68 +59,32 @@ function App() {
       updates[key] = u;
     });
     
-  async function handleChange(e) {
-      e.persist();
-      const caretStart = e.target.selectionStart;
-      const caretEnd = e.target.selectionEnd;
-      await updates[e.target.name](e.target.value);
-      e.target.setSelectionRange(caretStart, caretEnd);
-  }
+    async function handleChange(e) {
+        e.persist();
+        const caretStart = e.target.selectionStart;
+        const caretEnd = e.target.selectionEnd;
+        await updates[e.target.name](e.target.value);
+        e.target.setSelectionRange(caretStart, caretEnd);
+    }
 
-  const [tabValue, setTabValue] = React.useState(0);
+    const [tabValue, setTabValue] = React.useState(0);
 
-  function handleTabChange(event, newValue) {
-    setTabValue(newValue);
-  }
+    function handleTabChange(event, newValue) {
+      setTabValue(newValue);
+    }
 
   async function handleApiCredentialFile(newValue) {
     await updates['googleApiCredentials'](btoa(JSON.stringify(newValue)))
     await updates['googleApiAccount'](JSON.parse(newValue).client_email)
-    
     return true
-  }
-
-  async function testSheet(text) {
-    const SPREADSHEET_ID = await options.get('sheetId')
-    const BASE64_CREDS = await options.get('googleApiCredentials')
-    const creds = atob(BASE64_CREDS)
-
-    var doc = new GoogleSpreadsheet('<spreadsheet key>');
-    var sheet;
-
-    
-
-    doc.useServiceAccountAuth(creds, function() {
-      doc.addWorksheet({
-        title: 'my new sheet'
-      }, function(err, sheet) {
-   
-        // change a sheet's title
-        sheet.setTitle('new title'); //async
-   
-        //resize a sheet
-        sheet.resize({rowCount: 50, colCount: 20}); //async
-   
-        sheet.setHeaderRow(['name', 'age', 'phone']); //async
-   
-        // removing a worksheet
-        
-        
-      });
-
-    });
-    
-    
-
-    //const easySheets = new EasySheets(SPREADSHEET_ID, BASE64_CREDS)
-    //await easySheets.addRow(['Lookslike', 'it works'])
-
   }
 
   function testNote() {
     saveNote("Test. Delete me.")
 
   }
+
+  
 
   
 
@@ -205,99 +119,28 @@ function App() {
         
       <form className={classes.container} noValidate autoComplete="off">
       <TabPanel value={tabValue} index={0}>
-        <TextField
-        id="subdomain"
-        label="Subdomain"
-        className={classes.textField}
-        name="subdomain"
-        value={values['subdomain']}
-        onChange={async (e) => await handleChange(e)}
-        fullWidth
-        
-        InputProps={{
+        <Option type="text" name="subdomain" 
+          InputProps={{
             startAdornment: <InputAdornment position="start">https://</InputAdornment>,
             endAdornment: <InputAdornment position="end">.getalma.com</InputAdornment>,
-        
-          }}
-    />
-    <TextField
-        id="apiStudent"
-        label="API Student UUID"
-        className={classes.textField}
-        fullWidth
-        name="apiStudent"
-        value={values['apiStudent']}
-        onChange={async (e) => await handleChange(e)}
-        
-    />
-    <FormGroup row>
-      
-      <FormControlLabel
-        control={
-          <Switch checked={values['almaStart']} onChange={e => updates['almaStart'](e.target.checked)} value="almaStart" color="primary"></Switch>
-        }
-        label="Show options for Alma Start?"
-      ></FormControlLabel>
-      
-      </FormGroup>
-    
+          }} />
+          <Option type="text" name="apiStudentUUID"  />
+          <Option type="switch" name="almaStart" />
+          <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
       </TabPanel>
-      <TabPanel value={tabValue} index={1}>
-    <CssBaseline />
-    <FormGroup row>
-     
-      <FormControlLabel
-        control={
-          <Switch checked={values['htmlMessaging']} onChange={e => updates['htmlMessaging'](e.target.checked)} value="htmlMessaging" color="primary"></Switch>
-        }
-        label="Use HTML Messaging?"
-      ></FormControlLabel>
-     
-      </FormGroup>
-    <TextField
-        id="signature"
-        label="Messaging Signature"
-        className={classes.textField}
-        fullWidth
-        multiline
-        name="signature"
-        value={values['signature']}
-        onChange={async (e) => await handleChange(e)}
-        
-    />
+     <TabPanel value={tabValue} index={1}>
+      
+      <Option type="switch" name="htmlMessaging"  />
+      <Option type="text" name="signature" multiline />
     </TabPanel>
     <TabPanel value={tabValue} index={2}>
-    <CssBaseline />
-   <FormGroup row>
-      <FormControlLabel
-        control={
-          <Switch checked={values['displayChat']} onChange={e => updates['displayChat'](e.target.checked)} value="displayChat" color="primary"></Switch>
-        }
-        label="Display Chat Link?"
-      ></FormControlLabel>
-      <FormControlLabel
-        control={
-          <Switch checked={values['stayAlive']} onChange={e => updates['stayAlive'](e.target.checked)} value="stayAlive" color="primary"></Switch>
-        }
-        label="Stay Alive (prevent auto-logout)?"
-      ></FormControlLabel>
-      
-      
-      
-      </FormGroup>
-      
-
-      </TabPanel>
-      <TabPanel value={tabValue} index={3}>
-    <CssBaseline />
-   <FormGroup row>
-      <FormControlLabel 
-        control={
-          <Switch checked={values['almaStartPDFs']} onChange={e => updates['almaStartPDFs'](e.target.checked)} value="almaStartPDFs" color="primary" ></Switch>
-        }
-        label="Generate PDFs?"
-      ></FormControlLabel>
-      </FormGroup>
+      <Option type="switch" name="displayChat"  />
+      <Option type="switch" name="stayAlive"  />
+    </TabPanel>
+    <TabPanel value={tabValue} index={3}>
+    <Option type="switch" name="almaStartPDFButtons"  />
+    <Option type="switch" name="almaStartIgnoreEnrolled"  />
+    <Option type="switch" name="almaStartIgnoreApplicants"  />
       {/* 
       <FileInput label="Google Credentials JSON" callback={handleApiCredentialFile}></FileInput>
       {values['googleApiAccount']}
@@ -319,7 +162,7 @@ function App() {
     >Test Notes</Button>
 
       </TabPanel>
-       
+    
     </form>
     </div>
     </React.Fragment>

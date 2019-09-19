@@ -3,7 +3,7 @@ import { TabLink } from './TabLink/TabLink'
 
 function TabLinkList(props) {
     const tabLinks = props.tabLinks;
-    console.log(tabLinks);
+    
     const tabLinkItems = tabLinks.map(({iconClass, title, href}) => (
     <TabLink key={title} iconClass={iconClass} title={title} href={href} />
     )

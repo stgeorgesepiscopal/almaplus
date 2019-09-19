@@ -75,7 +75,6 @@ function isEquivalent(a, b) {
 
 
 export const newObjects = (oldArray, newArray, compare="updated") => {
-  
   return newArray.filter(function(obj) {
     return !oldArray.some(function(obj2) {
         return isEquivalent(obj, obj2);
@@ -100,4 +99,12 @@ export function nodesFromXpath(xpath, doc=document) {
   }
   return nodes;
 
+}
+
+export function closeWindow() {
+  window.close();
+}
+  
+export function log(t) {
+  console.log(t);
 }
