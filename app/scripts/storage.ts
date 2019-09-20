@@ -15,6 +15,7 @@ export interface OptionItems {
     almaStartPDFButtons: boolean;
     almaStartIgnoreEnrolled: boolean;
     almaStartIgnoreApplicants: boolean;
+    almaStartBrowserNotifications: boolean;
     stayAlive: boolean;
     googleApiCredentials: string;
     googleApiAccount: string;
@@ -34,6 +35,7 @@ export var options = StorageArea.create<OptionItems>({
         almaStartPDFButtons: true,
         almaStartIgnoreEnrolled: false,
         almaStartIgnoreApplicants: false,
+        almaStartBrowserNotifications: true,
         stayAlive: false,
         googleApiCredentials: '',
         googleApiAccount: '',
@@ -46,12 +48,14 @@ export var options = StorageArea.create<OptionItems>({
 
 export interface SearchDocuments {
     startStudents: Array<Object>;
+    startNotifications: Array<Object>;
     gradeLevels: Array<Object>;
 };
 
 export var searchData = StorageArea.create<SearchDocuments>({
     defaults: {
         startStudents: [{}],
+        startNotifications: [{}],
         gradeLevels: [{}]
 
     },

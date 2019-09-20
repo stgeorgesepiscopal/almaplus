@@ -44,7 +44,21 @@ export const searchByEmail = function(query, callback) {
     req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     req.onreadystatechange = function() {
       if (req.readyState == 4) {
-        callback(JSON.parse(req.responseText));
+
+        const results = JSON.parse(req.responseText)
+        console.log(results)
+        results.sort( (a,b) => {
+            var bigStringA = a.PreferredName.toLowerCase().padEnd(20," ")+
+                             a.FirstName.toLowerCase().padEnd(20," ") +
+                             a.LastName.toLowerCase().padEnd(20," ") +
+                             a.MiddleName.toLowerCase().padEnd(20," ")
+            var bigStringB = b.PreferredName.toLowerCase().padEnd(20," ") +
+                             b.FirstName.toLowerCase().padEnd(20," ") +
+                             b.LastName.toLowerCase().padEnd(20," ") +
+                             b.MiddleName.toLowerCase().padEnd(20," ")
+            return bigStringA.indexOf(query.toLowerCase()) - bigStringB.indexOf(query.toLowerCase())
+        })
+        callback(results);
       }
     }
     req.send(null);
@@ -53,6 +67,13 @@ export const searchByEmail = function(query, callback) {
 
 
 export const searchWithLocations = function(query, callback) {
+
+    if(query.includes("@") )
+    {
+      return searchByEmail(query, callback);
+        // https://sges.getalma.com/student/5d02296c70a9a12b391a12d5/search-parents?email=rjmcw
+        //var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
+    }
 
     var req = search(query, async function(json){
       var entries = json;
@@ -159,6 +180,7 @@ export const searchAlmaStart = async function(query, callback) {
 
 
 export const obCommands = {
+    'directory': search,
     'search': search,
     'email': searchByEmail,
     'whereis': searchWithLocations,

@@ -1,6 +1,7 @@
 import { options, searchData } from './storage';
-import { clearBody, nodesFromXpath, newObjects } from './util'
+import { clearBody, nodesFromXpath, newObjects, log } from './util'
 import {encode} from 'he'
+import {notifyAlmaStart} from './background-notifications'
 
 browser.runtime.onInstalled.addListener((details) => {
   console.log('previousVersion', details.previousVersion);
@@ -13,10 +14,6 @@ browser.runtime.onInstalled.addListener(async (details) => {
   console.log("Intializing Search Data Store");
   await searchData.initDefaults();
 });
-
-const log = function(l) {
-  console.log(l);
-}
 
 const getProcesses = async function(callback) {
   const subdomain = await options.get('subdomain');
@@ -64,6 +61,7 @@ const getGradeLevels = async function() {
       var body = clearBody(req.responseText);
       
       var parser = new DOMParser();
+        try {
           var doc = parser.parseFromString(body, "text/html");
           var gradeLevelFirst = parseInt(nodesFromXpath('//select[@name="GradeLevelFirst"]/option[@selected]', doc)[0].value)
           var gradeLevelLast = parseInt(nodesFromXpath('//select[@name="GradeLevelLast"]/option[@selected]', doc)[0].value)
@@ -79,7 +77,9 @@ const getGradeLevels = async function() {
             )
           });
 
-        searchData.gradeLevels.set(gradeLevels)
+          searchData.gradeLevels.set(gradeLevels)
+        } catch (e) { console.log(e) }
+        
     }
   }
 
@@ -89,12 +89,16 @@ const getGradeLevels = async function() {
 
 const getStudentsFromProcesses = async function(data) {
   const subdomain = await options.get('subdomain');
+  const almaStartBrowserNotifications = await options.get('almaStartBrowserNotifications');
+
   const oldData = await searchData.get('startStudents'); 
   const ignoreEnrolled = await options.get('almaStartIgnoreEnrolled');
   const ignoreApplicants = await options.get('almaStartIgnoreApplicants');
 
   var d = [{}];
   var finished = 0;
+
+  // TODO: I think this is a great spot for Promises.all ...
 
   data.Processes.forEach( (process) => {
     var url = process.href;
@@ -137,7 +141,10 @@ const getStudentsFromProcesses = async function(data) {
           console.log(data.Processes.length)
           if (finished == data.Processes.length) {
             searchData.startStudents.set(d);
-            console.log(newObjects(oldData, d))
+
+            const notifications = newObjects(oldData, d)
+            notifyAlmaStart(notifications)
+            console.log(notifications)
           } 
 
          

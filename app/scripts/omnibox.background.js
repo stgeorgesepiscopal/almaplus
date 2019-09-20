@@ -103,7 +103,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
           isLoggedIn = true;
             for (var i = 0, entry; i < (entries.Message.length <= 4 ? entries.Message.length : 4) && (entry = entries.Message[i]); i++) {
                 var path = "https://"+subdomain+".getalma.com/parent/"+entry.id+"/bio";
-                var template = entry.FirstName+" "+entry.LastName+" ["+entry.EmailAddresses[0].EmailAddress+"]";
+                var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName+" ["+entry.EmailAddresses[0].EmailAddress+"]";
                 var regex1 = /<[^>]+>/;
                 var template_split = template.split(regex1);
                 var description = '<dim>［'+pad("Parent",8)+'］</dim> '+template_split.filter(function(e){ return e != '' }).join(" | ").replace(new RegExp(searchText,"gi"), "<match>$&</match>") ;
@@ -116,12 +116,10 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
         }
         else {
             isLoggedIn = true;
+            
             for (var i = 0, entry; i < (entries.length <= 4 ? entries.length : 4) && (entry = entries[i]); i++) {
             var path = "https://"+subdomain+".getalma.com/"+entry.ProfileUrl;
-            //var line =
-            //    entry.getElementsByTagName("match")[0].getAttribute("lineNumber");
-            //var file = path.split("/").pop();
-            var template = entry.DisplayName;
+            var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName
             var regex1 = /<[^>]+>/;
             var template_split = template.split(regex1);
             
@@ -131,7 +129,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
                 if (entry.hasOwnProperty('Location')) {
                   description += "   <url>"+entry.Location+"</url>"
                 }
-                //description += '<url>PARENT</url>';
+                
     
             results.push({
                 content: "https://"+subdomain+".getalma.com/"+entry.ProfileUrl ,
