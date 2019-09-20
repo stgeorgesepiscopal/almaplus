@@ -52,6 +52,41 @@ const getProcesses = async function(callback) {
 
 }
 
+const getGradeLevels = async function() {
+  const subdomain = await options.get('subdomain');
+  const url = "https://"+subdomain+".getalma.com/settings"
+
+  var req = new XMLHttpRequest();
+  req.open("GET", url, true);
+  req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) {
+      var body = clearBody(req.responseText);
+      
+      var parser = new DOMParser();
+          var doc = parser.parseFromString(body, "text/html");
+          var gradeLevelFirst = parseInt(nodesFromXpath('//select[@name="GradeLevelFirst"]/option[@selected]', doc)[0].value)
+          var gradeLevelLast = parseInt(nodesFromXpath('//select[@name="GradeLevelLast"]/option[@selected]', doc)[0].value)
+          var n = nodesFromXpath('//input[contains(@name,"GradeLevels") and contains(@name,"Abbreviation")]', doc);
+          
+          var gradeLevels = []
+          n.slice(gradeLevelFirst, gradeLevelLast+1).forEach((node) => {
+            gradeLevels.push(
+              {
+                value: node.value,
+                label: node.parentElement.parentElement.children[1].children[0].value
+              }
+            )
+          });
+
+        searchData.gradeLevels.set(gradeLevels)
+    }
+  }
+
+  req.send(null);
+  return req;
+}
+
 const getStudentsFromProcesses = async function(data) {
   const subdomain = await options.get('subdomain');
   const oldData = await searchData.get('startStudents'); 
@@ -204,6 +239,9 @@ const main = async function() {
 
   main();
   getProcesses(getStudentsFromProcesses);
+  getGradeLevels();
+
   setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
+  setInterval(getGradeLevels, 60 * 60000);
 
 

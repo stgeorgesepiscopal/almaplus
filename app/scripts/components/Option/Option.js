@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import { Button, TextField, Switch, FormGroup, FormControlLabel, MenuItem, Select, InputLabel, Checkbox } from '@material-ui/core';
+import { Button, TextField, Switch, FormGroup, FormControlLabel, MenuItem, Select, InputLabel, Checkbox, Input, Chip, FormControl,  } from '@material-ui/core';
 
 import {startCase} from 'lodash'
 
@@ -21,8 +21,40 @@ const useStyles = makeStyles(theme => ({
         marginRight: theme.spacing(1),
         marginTop: theme.spacing(2),
       },
+      formControl: {
+        margin: theme.spacing(1),
+        width: "100%"
+      },
+      chips: {
+        display: 'flex',
+        flexWrap: 'wrap',
+      },
+      chip: {
+        margin: 2,
+      },
 
     }));
+
+    function getStyles(name, personName, theme) {
+        return {
+          fontWeight:
+            personName.indexOf(name) === -1
+              ? theme.typography.fontWeightRegular
+              : theme.typography.fontWeightMedium,
+        };
+      }
+
+      const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
 
 export function Option(props) {
     
@@ -33,6 +65,7 @@ export function Option(props) {
         const [value, update] = useStore(options[name], options.defaults[name]);
 
         const classes = useStyles();
+        const theme = useTheme();
 
         async function handleChange(e) {
             e.persist();
@@ -41,6 +74,17 @@ export function Option(props) {
             await update(e.target.value);
             e.target.setSelectionRange(caretStart, caretEnd);
         }
+
+        async function handleChangeMultiple(e) {
+            //const { options } = e.target;
+            //const value = [];
+            //for (let i = 0, l = options.length; i < l; i += 1) {
+            //  if (options[i].selected) {
+            //    value.push(options[i].value);
+            //  }
+            //}
+            await update(e.target.value);
+          }
     
         if ( type == "text" ){
             return (
@@ -81,6 +125,7 @@ export function Option(props) {
                 ));
             return(
                 <>
+                <FormControl className={classes.formControl}>
                 <InputLabel htmlFor={name}>{ label ? label : startCase(name) }</InputLabel>
                 <Select
                 value={value}
@@ -92,9 +137,42 @@ export function Option(props) {
                 >
                 {menuItems}
                 </Select>
+                </FormControl>
                 </>
             
             );
+        }
+        if (type == "multiselect"){
+
+            return(
+                <>
+                <FormControl className={classes.formControl}>
+                    <InputLabel htmlFor="select-multiple-chip">{ label ? label : startCase(name) }</InputLabel>
+                    <Select
+                    multiple
+                    fullWidth
+                    value={value}
+                    onChange={async (e) => await handleChangeMultiple(e)}
+                    input={<Input id="select-multiple-chip" />}
+                    renderValue={value => (
+                        <div className={classes.chips}>
+                        {value.map(value => (
+                            <Chip key={value} label={value} className={classes.chip} />
+                        ))}
+                        </div>
+                    )}
+                    MenuProps={MenuProps}
+                    >
+                    {props.menuItems.map(({value, label})  => (
+                        <MenuItem key={value} value={value} style={getStyles(value, label, theme)}>
+                        {label}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+
+                </>
+            )
         }
     
   }

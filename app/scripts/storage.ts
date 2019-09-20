@@ -20,6 +20,7 @@ export interface OptionItems {
     googleApiAccount: string;
     sheetId: string;
     defaultSearch:string;
+    attendanceIgnoreClasses:Array<string>;
 }
 
 export var options = StorageArea.create<OptionItems>({
@@ -37,18 +38,21 @@ export var options = StorageArea.create<OptionItems>({
         googleApiCredentials: '',
         googleApiAccount: '',
         sheetId: '',
-        defaultSearch: '',
+        defaultSearch: 'search',
+        attendanceIgnoreClasses: [],
     },
     storageArea: 'sync'
 });
 
 export interface SearchDocuments {
     startStudents: Array<Object>;
+    gradeLevels: Array<Object>;
 };
 
 export var searchData = StorageArea.create<SearchDocuments>({
     defaults: {
         startStudents: [{}],
+        gradeLevels: [{}]
 
     },
     storageArea: 'local'

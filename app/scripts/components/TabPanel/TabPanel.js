@@ -3,14 +3,28 @@ import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles(theme => ({
+    
+  typography: {
+      
+      width: "100%",
+      
+    },
+ 
+
+}));
 
 export function TabPanel(props) {
     const { children, value, index, ...other } = props;
+    const classes = useStyles();
   
     return (
       <Typography
         component="div"
         role="tabpanel"
+        className = { classes.typography }
         hidden={value !== index}
         id={`simple-tabpanel-${index}`}
         aria-labelledby={`simple-tab-${index}`}

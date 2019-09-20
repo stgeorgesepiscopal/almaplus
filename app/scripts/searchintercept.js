@@ -51,6 +51,8 @@ async function doSearch(text, callback) {
               var description = template.replace(new RegExp(searchText,"gi"), "<match>$&</match>") ;
               
               results.push({
+                  first: entry.title,
+                  category: entry.content,
                   content: path ,
                   description: description
               });
@@ -89,7 +91,7 @@ async function doSearch(text, callback) {
                     last: entry.LastName,
                     middle: entry.MiddleName,
                     preferred: entry.PreferredName,
-                    category: entry.Category,
+                    category: entry.EmailAddresses[0].EmailAddress,
                     profileUrl: entry.ProfileUrl,
                     content: path ,
                     description: description

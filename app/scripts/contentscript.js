@@ -32,7 +32,7 @@ async function getOptions() {
     function getUrlVars(url) {
         var vars = {};
         var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-            vars[key] = value.replace(/%20/gi, " ");
+            vars[key] = decodeURIComponent(value);
         });
         return vars;
     }
@@ -116,6 +116,10 @@ async function getOptions() {
                 } catch (e) {}
 
                 console.log('Caught! :)', method, URL/*, _this.responseText*/);
+            }
+            else
+            {
+                if (_onreadystatechange) _onreadystatechange.apply(this, arguments);
             }
             // call original callback
            

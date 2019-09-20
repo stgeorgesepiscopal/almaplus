@@ -13,10 +13,23 @@ async function initialize() {
 initialize();
 
 
-export const search = function (query, callback) {
+
+export const searchByEmail = function(query, callback) {
+    var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    req.onreadystatechange = function() {
+      if (req.readyState == 4) {
+        callback(JSON.parse(req.responseText));
+      }
+    }
+    req.send(null);
+    return req;
+  }
+
+  export const search = function (query, callback) {
     console.log("Debug Search", query);
-    if (query == 'halp')
-      return;
     
     if(query.includes("@") )
     {
@@ -38,19 +51,6 @@ export const search = function (query, callback) {
     return req;
   }
 
-export const searchByEmail = function(query, callback) {
-    var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
-    var req = new XMLHttpRequest();
-    req.open("GET", url, true);
-    req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    req.onreadystatechange = function() {
-      if (req.readyState == 4) {
-        callback(JSON.parse(req.responseText));
-      }
-    }
-    req.send(null);
-    return req;
-  }
 
 export const searchWithLocations = function(query, callback) {
 

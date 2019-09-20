@@ -15,7 +15,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import SvgIcon from '@material-ui/core/SvgIcon'
 import CheckIcon from '@material-ui/icons/Check'
 
-import { options, useStore, inputId } from './storage';
+import { options, useStore, inputId, searchData } from './storage';
 import FileInput from './components/FileInput/FileInput';
 import {Option} from './components/Option/Option';
 import {TabPanel, a11yProps} from './components/TabPanel/TabPanel'
@@ -47,11 +47,22 @@ const useStyles = makeStyles(theme => ({
   }));
 
 
+  var gradeLevels = [];
+  async function getGradeLevels() {
+    gradeLevels = await searchData.gradeLevels.get()
+    
+    return gradeLevels
+  }
 
 function App() {
     const classes = useStyles();
     var values = [];
     var updates = [];
+    
+
+    
+    getGradeLevels()
+    console.log(gradeLevels)
     
     Object.entries(options.defaults).forEach(async ([key, value]) => {
       const [v, u] = useStore(options[key], value);
@@ -109,9 +120,10 @@ function App() {
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="simple tabs example" variant="fullWidth" indicatorColor="primary"
           textColor="primary">
             <Tab label="Basic Options" {...a11yProps(0)} />
-            <Tab label="Messaging" {...a11yProps(1)} />
-            <Tab label="Other" {...a11yProps(2)} />
-            <Tab label="Alma Start" {...a11yProps(3)} style={{display: ((values['almaStart']) ? 'block' : 'none') }} />
+            <Tab label="Attendance" {...a11yProps(1)} />
+            <Tab label="Messaging" {...a11yProps(2)} />
+            <Tab label="Other" {...a11yProps(3)} />
+            <Tab label="Alma Start" {...a11yProps(4)} style={{display: ((values['almaStart']) ? 'block' : 'none') }} />
           </Tabs>
         </AppBar>
     <CssBaseline />
@@ -128,16 +140,22 @@ function App() {
           <Option type="switch" name="almaStart" />
           <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
       </TabPanel>
-     <TabPanel value={tabValue} index={1}>
+      <TabPanel value={tabValue} index={1}>
+      
+      <Option type="multiselect" name="attendanceIgnoreClasses" menuItems={ gradeLevels }   />
+      
+    </TabPanel>
+
+     <TabPanel value={tabValue} index={2}>
       
       <Option type="switch" name="htmlMessaging"  />
       <Option type="text" name="signature" multiline />
     </TabPanel>
-    <TabPanel value={tabValue} index={2}>
+    <TabPanel value={tabValue} index={3}>
       <Option type="switch" name="displayChat"  />
       <Option type="switch" name="stayAlive"  />
     </TabPanel>
-    <TabPanel value={tabValue} index={3}>
+    <TabPanel value={tabValue} index={4}>
     <Option type="checkbox" name="almaStartPDFButtons"  />
     <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
     <Option type="checkbox" name="almaStartIgnoreApplicants"  />
