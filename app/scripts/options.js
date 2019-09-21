@@ -62,7 +62,7 @@ function App() {
 
     
     getGradeLevels()
-    console.log(gradeLevels)
+    
     
     Object.entries(options.defaults).forEach(async ([key, value]) => {
       const [v, u] = useStore(options[key], value);
@@ -106,16 +106,15 @@ function App() {
     <React.Fragment>
         <AppBar position="static">
           <Toolbar>
-            <Typography variant="h6" className={classes.title} noWrap>
-            Alma+ Settings
-            
-          </Typography>
-          <Button className={classes.button} color="primary" size="small" onClick={closeWindow}>
-         <CheckIcon></CheckIcon>
-        </Button>
-        </Toolbar>
+            <Typography variant="h6" className={classes.title} noWrap>Alma+ Settings</Typography>
+            <Button className={classes.button} color="primary" size="small" onClick={closeWindow}>
+              <CheckIcon></CheckIcon>
+            </Button>
+          </Toolbar>
         </AppBar>
+        
         <div className={classes.root}>
+        
         <AppBar position="static">
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="simple tabs example" variant="fullWidth" indicatorColor="primary"
           textColor="primary">
@@ -126,40 +125,54 @@ function App() {
             <Tab label="Alma Start" {...a11yProps(4)} style={{display: ((values['almaStart']) ? 'block' : 'none') }} />
           </Tabs>
         </AppBar>
-    <CssBaseline />
+
+        <CssBaseline />
     
         
-      <form className={classes.container} noValidate autoComplete="off">
-      <TabPanel value={tabValue} index={0}>
-        <Option type="text" name="subdomain" 
-          InputProps={{
-            startAdornment: <InputAdornment position="start">https://</InputAdornment>,
-            endAdornment: <InputAdornment position="end">.getalma.com</InputAdornment>,
-          }} />
-          <Option type="text" name="apiStudentUUID"  />
-          <Option type="switch" name="almaStart" />
-          <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
-      </TabPanel>
-      <TabPanel value={tabValue} index={1}>
-      
-      <Option type="multiselect" name="attendanceIgnoreClasses" menuItems={ gradeLevels }   />
-      
-    </TabPanel>
+        <form className={classes.container} noValidate autoComplete="off">
+          
+          {/* Basic Options */}
+          <TabPanel value={tabValue} index={0}> 
+            <Option type="text" name="subdomain" 
+              InputProps={{
+                startAdornment: <InputAdornment position="start">https://</InputAdornment>,
+                endAdornment: <InputAdornment position="end">.getalma.com</InputAdornment>,
+              }}
+            />
+            <Option type="text" name="apiStudentUUID"  />
+            <Option type="checkbox" name="almaStart" />
+            <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
+          </TabPanel>
+          
+          {/* Attendance */}
+          <TabPanel value={tabValue} index={1}> 
+            <Option type="multiselect" name="attendanceIgnoreClasses" menuItems={ gradeLevels }   />
+          </TabPanel>
 
-     <TabPanel value={tabValue} index={2}>
-      
-      <Option type="switch" name="htmlMessaging"  />
-      <Option type="text" name="signature" multiline />
-    </TabPanel>
-    <TabPanel value={tabValue} index={3}>
-      <Option type="switch" name="displayChat"  />
-      <Option type="switch" name="stayAlive"  />
-    </TabPanel>
-    <TabPanel value={tabValue} index={4}>
-    <Option type="checkbox" name="almaStartPDFButtons"  />
-    <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
-    <Option type="checkbox" name="almaStartIgnoreApplicants"  />
-      {/* 
+          {/* Messaging */}
+          <TabPanel value={tabValue} index={2}> 
+            <Option type="checkbox" name="htmlMessaging"  />
+            <Option type="text" name="signature" multiline />
+          </TabPanel>
+
+          {/* Other */}
+          <TabPanel value={tabValue} index={3}> 
+            <Option type="checkbox" name="displayChat" label="Display Support Chat Icon?"  />
+            <Option type="checkbox" name="stayAlive" lable="Prevent Logging Out?"  />
+          </TabPanel>
+
+          {/* Alma Start */}
+          <TabPanel value={tabValue} index={4}> 
+            <Option type="checkbox" name="almaStartPDFButtons"  />
+            <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
+            <Option type="checkbox" name="almaStartIgnoreApplicants"  />
+            <Option type="checkbox" name="almaStartBrowserNotifications"  />
+          </TabPanel>
+
+        </form>
+
+      </div>
+{/* 
       <FileInput label="Google Credentials JSON" callback={handleApiCredentialFile}></FileInput>
       {values['googleApiAccount']}
       <CssBaseline />
@@ -172,18 +185,18 @@ function App() {
         name="sheetId"
         value={values['sheetId']}
         onChange={async (e) => await handleChange(e)}
-        
+        <Button className={classes.button} color="primary" size="small" onClick={testNote}
+    >Test Notes</Button>
     />
     */}  
-
-    <Button className={classes.button} color="primary" size="small" onClick={testNote}
-    >Test Notes</Button>
-
-      </TabPanel>
-    
-    </form>
-    </div>
     </React.Fragment>
+      
+
+    
+
+      
+    
+    
   );
 }
 

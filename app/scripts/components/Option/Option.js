@@ -22,7 +22,9 @@ const useStyles = makeStyles(theme => ({
         marginTop: theme.spacing(2),
       },
       formControl: {
-        margin: theme.spacing(1),
+        marginLeft: theme.spacing(1),
+        marginRight: theme.spacing(1),
+        marginTop: theme.spacing(2),
         width: "100%"
       },
       chips: {
@@ -61,7 +63,7 @@ export function Option(props) {
     
         
 
-        const { type, name, label, ...other } = props;
+        const { type, name, label, menuItems, ...other } = props;
         const [value, update] = useStore(options[name], options.defaults[name]);
 
         const classes = useStyles();
@@ -103,19 +105,19 @@ export function Option(props) {
         }
         if ( type == "switch" ){
             return(
-                <FormGroup ><FormControlLabel control={
-                    <Switch checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" ></Switch>
+                <FormControl className={classes.formControl}><FormGroup ><FormControlLabel control={
+                    <Switch checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" {...other}></Switch>
                 } label={ label ? label : startCase(name) + "?" }
-                ></FormControlLabel></FormGroup>
+                ></FormControlLabel></FormGroup></FormControl>
 
             );
         }
         if ( type == "checkbox" ){
             return(
-                <FormGroup ><FormControlLabel control={
-                    <Checkbox checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" ></Checkbox>
+                <FormControl className={classes.formControl}><FormGroup ><FormControlLabel control={
+                    <Checkbox checked={value} onChange={e => update(e.target.checked)} value={name} color="primary" {...other}></Checkbox>
                 } label={ label ? label : startCase(name) + "?" }
-                ></FormControlLabel></FormGroup>
+                ></FormControlLabel></FormGroup></FormControl>
 
             );
         }
@@ -134,6 +136,7 @@ export function Option(props) {
                     name: name,
                     id: name,
                 }}
+                {...other}
                 >
                 {menuItems}
                 </Select>
