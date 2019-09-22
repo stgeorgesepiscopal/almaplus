@@ -59,6 +59,17 @@
       ],
       "run_at": "document_end",
       "all_frames": false
+    },
+    {
+      "matches": [
+        "http://*.getalma.com/workflows/processes/*/*/*",
+        "https://*.getalma.com/workflows/processes/*/*/*"
+      ],
+      "js": [
+        "scripts/almastart.layout.content.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
     }
   ],
   "web_accessible_resources": [

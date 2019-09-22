@@ -22,6 +22,14 @@ const pad = (str, length, char = '　') => {
  return str.padStart((str.length + length) / 2, char).padEnd(length, char);
 }
 
+function cleanEntry(entry) {
+  ["FirstName", "LastName", "MiddleName", "PreferredName"].forEach(key => {
+    if (!entry[key])
+      entry[key] = ""
+  })
+  return entry
+}
+
  
 
 chrome.omnibox.onInputEntered.addListener(function(text) {
@@ -102,6 +110,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
         {
           isLoggedIn = true;
             for (var i = 0, entry; i < (entries.Message.length <= 4 ? entries.Message.length : 4) && (entry = entries.Message[i]); i++) {
+                entry = cleanEntry(entry)
                 var path = "https://"+subdomain+".getalma.com/parent/"+entry.id+"/bio";
                 var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName+" ["+entry.EmailAddresses[0].EmailAddress+"]";
                 var regex1 = /<[^>]+>/;
@@ -118,7 +127,8 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
             isLoggedIn = true;
             
             for (var i = 0, entry; i < (entries.length <= 4 ? entries.length : 4) && (entry = entries[i]); i++) {
-            var path = "https://"+subdomain+".getalma.com/"+entry.ProfileUrl;
+              entry = cleanEntry(entry)
+              var path = "https://"+subdomain+".getalma.com/"+entry.ProfileUrl;
             var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName
             var regex1 = /<[^>]+>/;
             var template_split = template.split(regex1);

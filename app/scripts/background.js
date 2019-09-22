@@ -3,17 +3,20 @@ import { clearBody, nodesFromXpath, newObjects, log } from './util'
 import {encode} from 'he'
 import {notifyAlmaStart} from './background-notifications'
 
+const initialize = function() {
+  
+  return Promise.all([
+      options.initDefaults(),
+      searchData.initDefaults()])
+
+}
+
 browser.runtime.onInstalled.addListener((details) => {
   console.log('previousVersion', details.previousVersion);
   
 })
 
-browser.runtime.onInstalled.addListener(async (details) => {
-  console.log("Initializing Options");
-  await options.initDefaults();
-  console.log("Intializing Search Data Store");
-  await searchData.initDefaults();
-});
+
 
 const getProcesses = async function(callback) {
   const subdomain = await options.get('subdomain');
@@ -87,31 +90,33 @@ const getGradeLevels = async function() {
   return req;
 }
 
-const getStudentsFromProcesses = async function(data) {
-  const subdomain = await options.get('subdomain');
-  const almaStartBrowserNotifications = await options.get('almaStartBrowserNotifications');
-
-  const oldData = await searchData.get('startStudents'); 
-  const ignoreEnrolled = await options.get('almaStartIgnoreEnrolled');
-  const ignoreApplicants = await options.get('almaStartIgnoreApplicants');
-
-  var d = [{}];
-  var finished = 0;
-
-  // TODO: I think this is a great spot for Promises.all ...
-
-  data.Processes.forEach( (process) => {
-    var url = process.href;
-    var req = new XMLHttpRequest();
-    req.open("GET", url, true);
-    req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    req.onreadystatechange = function() {
-      if (req.readyState == 4) {
-        var body = clearBody(req.responseText);
-        var parser = new DOMParser();
-            var doc = parser.parseFromString(body, "text/html");
-            const enrolled = nodesFromXpath("//a[contains(@data-alma-modal,'WorkflowsAddStudentSisModal')]", doc).length > 0;
-            if( ( !ignoreEnrolled && !ignoreApplicants ) || ( !ignoreEnrolled &&  enrolled ) || ( !ignoreApplicants &&  !enrolled ) )
+var getStudentsFromAProcess = async function(process, method) {
+  const settings = await options.get()
+  
+  console.log(settings.subdomain)
+  
+    // Create the XHR request
+    var request = new XMLHttpRequest();
+    
+    // Return it as a Promise
+    return new Promise(function (resolve, reject) {
+  
+      // Setup our listener to process compeleted requests
+      request.onreadystatechange = function () {
+  
+        // Only run if the request is complete
+        if (request.readyState !== 4) return;
+  
+        // Process the response
+        if (request.status >= 200 && request.status < 300) {
+          var body = clearBody(request.responseText);
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(body, "text/html");
+          const enrolled = nodesFromXpath("//a[contains(@data-alma-modal,'WorkflowsAddStudentSisModal')]", doc).length > 0;
+          
+          if( ( !settings.ignoreEnrolled && !settings.ignoreApplicants ) || 
+              ( !settings.ignoreEnrolled &&  enrolled ) || 
+              ( !settings.ignoreApplicants &&  !enrolled ) )
             {
             var n = nodesFromXpath("//td//a", doc);
             
@@ -119,7 +124,7 @@ const getStudentsFromProcesses = async function(data) {
             n.forEach((node) => {
               helpResults.push(
                 {
-                  href: "https://"+subdomain+".getalma.com"+node.getAttribute("href"),
+                  href: "https://"+settings.subdomain+".getalma.com"+node.getAttribute("href"),
                   name: encode(node.textContent.trim()),
                   grade: encode(node.parentElement.parentElement.children[2].textContent.trim()),
                   stage: encode(node.parentElement.parentElement.children[3].textContent.trim()),
@@ -131,36 +136,55 @@ const getStudentsFromProcesses = async function(data) {
                 }
               )
             });
-        
-            d.push(...helpResults);
-            
-            
           }
-          finished++;
-          console.log(finished);
-          console.log(data.Processes.length)
-          if (finished == data.Processes.length) {
-            searchData.startStudents.set(d);
 
-            const notifications = newObjects(oldData, d)
-            notifyAlmaStart(notifications)
-            console.log(notifications)
-          } 
-
-         
-      }
-    }
-
-    req.send(null);
-    
-
-  }
-
-  );
+          // If successful
+          resolve(helpResults);
+        } else {
+          // If failed
+          reject({
+            status: request.status,
+            statusText: request.statusText
+          });
+        }
+  
+      };
+  
+      // Setup our HTTP request
+      request.open(method || 'GET', process.href, true);
+      request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      // Send the request
+      request.send();
+  
+    });
+  
 }
 
+const getStudentsFromProcesses = async function(data) {
+  const subdomain = await options.get('subdomain');
+  const almaStartBrowserNotifications = await options.get('almaStartBrowserNotifications');
 
-var subdomain = '';
+  const oldData = await searchData.get('startStudents'); 
+  
+  
+  const dA = await Promise.all(
+    data.Processes.map( p => getStudentsFromAProcess(p) )
+  )
+  const d = [].concat(...dA)
+
+   
+
+
+  const notifications = newObjects(oldData, d)
+  if (notifications.length > 0) {
+    searchData.startStudents.set(d);
+    notifyAlmaStart(notifications)
+  }
+  
+  console.log(notifications)
+  
+}
+
 
 const doBlocking = function(){ return {cancel: true}; }
 
@@ -244,11 +268,16 @@ const main = async function() {
 
   }
 
-  main();
-  getProcesses(getStudentsFromProcesses);
-  getGradeLevels();
+  initialize().then(
+    () => {
+      main();
+      getProcesses(getStudentsFromProcesses);
+      getGradeLevels();
+    
+      setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
+      setInterval(getGradeLevels, 60 * 60000);
+    }
+  )
 
-  setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
-  setInterval(getGradeLevels, 60 * 60000);
 
 

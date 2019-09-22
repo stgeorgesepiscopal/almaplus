@@ -5,7 +5,7 @@ const TabLink = ( {href, iconClass, title} ) => {
     const pureMenuLink = "pure-menu-link"
     return(
        <li className={pureMenuItem}>
-           <a href={href} className={pureMenuLink} title={title}>{iconClass != "" && <i className={iconClass}> </i> }{' '} {title}</a>
+           <a href={href} className={pureMenuLink} title={title}>{iconClass != "" && <i className={iconClass}> </i> }{' '} {title} </a>
        </li> 
     );
 }

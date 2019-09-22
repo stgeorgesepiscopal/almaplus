@@ -1,29 +1,6 @@
-import {options} from './storage';
+import {options} from './storage'
+import {injectScript} from './util'
 
-function injectScript(file_path, tag='html', type='script', text='') {
-    
-    var node = document.getElementsByTagName(tag)[0];
-    var tag_type = type == 'link' ? 'link' : 'script';
-    var script = document.createElement(tag_type);
-    if(type == 'script') {
-    script.setAttribute('type', 'text/javascript');
-    }
-    else if ( type == 'module' ) {
-    script.setAttribute('type', 'module');
-    }
-    else {
-        script.setAttribute('rel', 'stylesheet');
-        script.setAttribute('media', 'screen');
-        
-    }
-    if (text == '') {
-        script.setAttribute(tag_type == 'script' ? 'src': 'href', file_path);
-    }
-    else {
-        script.innerHTML = text;
-    }
-    node.appendChild(script);
-}
 async function getOptions() {
     const settings = await options.get() ;
 
@@ -148,8 +125,12 @@ async function getOptions() {
         var button = document.getElementsByClassName('switcher')[0].cloneNode(true);
         button.children[0].children[0].innerHTML = '<a class="pure-menu-link"><i class="fas fa-comment-dots fa-sm" ></i></a>'
         button.onclick = function() { Intercom('showMessages'); }
+        
         document.getElementsByClassName('switcher')[0].parentElement.insertBefore(button, document.getElementsByClassName('switcher')[0].parentElement.children[1]);
-        document.getElementsByClassName('switcher')[0].parentElement.insertBefore(document.createElement("div"), document.getElementsByClassName('switcher')[0].parentElement.children[1]);
+        
+        var insertDiv = document.createElement("div");
+        insertDiv.style.width = "100%";
+        document.getElementsByClassName('switcher')[0].parentElement.insertBefore(insertDiv, document.getElementsByClassName('switcher')[0].parentElement.children[1]);
         `);
     }
     if (settings.htmlMessaging) {
