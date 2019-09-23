@@ -1,12 +1,17 @@
-import {searchData} from './storage'
+import {searchData, options} from './storage'
+import {sendMessage } from './alma'
+import {newObjects} from './util'
 
 
 function clickedNotificationButton(id, button) {
     
 }
 
-export function notifyAlmaStart(items) {
+export async function notifyAlmaStart(items) {
     console.log("In notify function", items)
+    const settings = await options.get()
+    const oldNotifications = await searchData.startNotifications.get()
+    console.log(oldNotifications)
     
     /* 
     
@@ -25,55 +30,69 @@ export function notifyAlmaStart(items) {
        const processes = items.reduce(
         (unique, item) => {
             if (!unique[item.process]) {
-                unique[item.process] = { process: item.process, amount: 1, updated: item.updated, href: item.href }
+
+                unique[item.process] = { process: item.process, amount: 1, name:item.name, updated: item.updated, href: item.href }
             } else {
+                if (Date.parse(item.updated) > unique[item.process]["updated"]) {
+                    unique[item.process]["updated"] = item.updated }
                unique[item.process]["amount"] = unique[item.process]["amount"] + 1 
             } 
             return unique
         }, 
         {} )
 
-        console.log("Processes", processes);
+        
        items = Object.values(processes).map(
            process => {
-               return { process: process.process, name: process.amount + (process.amount > 1 ? " people" : " person" ), updated: process.updated, href: process.href }
+               return { process: process.process, name:  (process.amount > 1 ? process.amount + " people" : process.name ), updated: process.updated, href: process.href }
            }
        )
 
     }
-    console.log(items);
-
     
 
     items.forEach( (item) => {
         var now = Date.now();
-        var id = "AlmaPlus"+item.href+now;
+        var id = "AlmaPlus"+item.href+item.updated;
+        const notificationObject = {id: id, href: item.href, updated: item.updated}
+        if(newObjects(oldNotifications, [notificationObject]).length > 0) {
+            oldNotifications.push(notificationObject)
+            console.log(oldNotifications)
 
-        searchData.get('startNotifications').then( n => { n.push({id: id, href: item.href}); searchData.startNotifications.set(n); })
+            //searchData.get('startNotifications').then( n => { n.push({id: id, href: item.href, updated: item.updated}); searchData.startNotifications.set(n); })
 
-        var opt = {
-            type: "basic",
-            title: item.name,
-            message: `${item.name} updated ${item.process} on ${item.updated}`,
-            contextMessage: "Alma+",
-            iconUrl: chrome.runtime.getURL('images/icon-128.png'),
-            requireInteraction: true,
-            buttons: [
-                {
-                    title: "Go to Process",
+            var opt = {
+                type: "basic",
+                title: item.name,
+                message: `${item.name} updated ${item.process} on ${item.updated}`,
+                contextMessage: "Alma+",
+                iconUrl: chrome.runtime.getURL('images/icon-128.png'),
+                requireInteraction: true,
+                buttons: [
+                    {
+                        title: "Go to Process",
 
+                    }
+                ],
+                
+            }
+
+            if(settings.almaStartBrowserNotifications) {
+
+                chrome.notifications.create(id, opt, function(id) {
+                    var timer = setTimeout(function(){chrome.notifications.clear(id);}, 60000);
+                });
                 }
-            ],
-            
-          }
+            if(settings.almaStartEmailNotifications) {
+                sendMessage(settings.userUUID, "Alma+ Notification", `${item.name} updated ${item.process} on ${item.updated}`)
 
-          chrome.notifications.create(id, opt, function(id) {
-            var timer = setTimeout(function(){chrome.notifications.clear(id);}, 60000);
-          });
+            }
+        }
         
 
 
     })
+    searchData.startNotifications.set(oldNotifications)
     
    
       

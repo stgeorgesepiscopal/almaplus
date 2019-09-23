@@ -43,12 +43,12 @@ async function getOptions() {
     var _open = XMLHttpRequest.prototype.open;
     window.XMLHttpRequest.prototype.open = function (method, URL) {
         var _onreadystatechange = this.onreadystatechange,
-            _this = this;
+            _this = this,
             __this = this;
-
+        
         _this.onreadystatechange = function () {
             // catch only completed 'api/search/universal' requests
-            if (_this.readyState === 4 && _this.status === 200 && ~URL.indexOf('/directory/search')) {
+            if (_this.readyState === 4 && _this.status === 200 && ~String(URL).indexOf('/directory/search')) {
                 try {
                     searchResults = false;
                     console.log("in readyState")

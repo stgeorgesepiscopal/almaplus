@@ -152,7 +152,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
         if(!isLoggedIn) {
           chrome.omnibox.setDefaultSuggestion({description: results[0].description});
           chrome.tabs.create({url:"https://"+subdomain+".getalma.com/", active:true}, function(tab){
-            //chrome.tabs.remove(tab.id);
+            console.log("Login") //chrome.tabs.remove(tab.id);
         });
         
         } else if ( results.length > 0 ){

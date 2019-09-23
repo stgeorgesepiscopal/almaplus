@@ -69,6 +69,8 @@ function App() {
       values[key] = v;
       updates[key] = u;
     });
+
+    const [message, u] = useStore(searchData.messages, [])
     
     async function handleChange(e) {
         e.persist();
@@ -167,6 +169,7 @@ function App() {
             <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
             <Option type="checkbox" name="almaStartIgnoreApplicants"  />
             <Option type="checkbox" name="almaStartBrowserNotifications"  />
+            <Option type="checkbox" name="almaStartEmailNotifications"  />
           </TabPanel>
 
         </form>

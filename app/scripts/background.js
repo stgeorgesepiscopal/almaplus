@@ -1,13 +1,74 @@
 import { options, searchData } from './storage';
 import { clearBody, nodesFromXpath, newObjects, log } from './util'
+import { sendMessage } from './alma'
 import {encode} from 'he'
 import {notifyAlmaStart} from './background-notifications'
 
-const initialize = function() {
+var settings = []
+
+const initializeDatastore = function() {
   
   return Promise.all([
       options.initDefaults(),
       searchData.initDefaults()])
+
+}
+
+const initialize = async function() {
+
+  settings = await options.get()
+  var request = new XMLHttpRequest();
+  
+  return new Promise(function (resolve, reject) {
+      request.onreadystatechange = function () {
+        
+        if (request.readyState !== 4) return;
+        if (request.status >= 200 && request.status < 300) {
+          try {
+            const result = request.responseText.match(/"user_id":"([^"]*)"/)[1]
+            options.userUUID.set(result);
+            console.log("UUID", result)
+            chrome.browserAction.setBadgeText({text: ``})
+            searchData.messages.set([])
+
+            resolve(result);
+          
+          
+          }
+          catch (e) {
+            chrome.browserAction.setBadgeBackgroundColor({color: [200,6,22,200]});
+            chrome.browserAction.setBadgeText({text: `ERR`})
+            searchData.messages.set([{text: 'Log in to Alma'}])
+            
+
+            reject({
+              reason: "NOT LOGGED IN",
+              e: e
+            })
+          }
+
+          //const body = clearBody(request.responseText);
+          //const body = request.responseText;
+          //const parser = new DOMParser();
+          //const doc = parser.parseFromString(body, "text/html");
+          //const result = getUserId(doc)
+          
+        } else {
+
+          reject({
+            status: request.status,
+            statusText: request.statusText
+          });
+        
+        }
+  
+      };
+  
+      request.open('GET', `https://${settings.subdomain}.getalma.com/home`, true);
+      request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      request.send();
+  
+    });
 
 }
 
@@ -93,35 +154,31 @@ const getGradeLevels = async function() {
 var getStudentsFromAProcess = async function(process, method) {
   const settings = await options.get()
   
-  console.log(settings.subdomain)
+  var request = new XMLHttpRequest();
   
-    // Create the XHR request
-    var request = new XMLHttpRequest();
-    
-    // Return it as a Promise
-    return new Promise(function (resolve, reject) {
-  
-      // Setup our listener to process compeleted requests
+  return new Promise(function (resolve, reject) {
       request.onreadystatechange = function () {
-  
-        // Only run if the request is complete
+        
         if (request.readyState !== 4) return;
-  
-        // Process the response
+
         if (request.status >= 200 && request.status < 300) {
-          var body = clearBody(request.responseText);
-          var parser = new DOMParser();
-          var doc = parser.parseFromString(body, "text/html");
+
+          const body = clearBody(request.responseText);
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(body, "text/html");
           const enrolled = nodesFromXpath("//a[contains(@data-alma-modal,'WorkflowsAddStudentSisModal')]", doc).length > 0;
-          
-          if( ( !settings.ignoreEnrolled && !settings.ignoreApplicants ) || 
-              ( !settings.ignoreEnrolled &&  enrolled ) || 
-              ( !settings.ignoreApplicants &&  !enrolled ) )
+          const helpResults = []
+
+          if( ( !settings.almaStartIgnoreEnrolled && !settings.almaStartIgnoreApplicants ) || 
+              ( !settings.almaStartIgnoreEnrolled &&  enrolled ) || 
+              ( !settings.almaStartIgnoreApplicants &&  !enrolled ) )
             {
-            var n = nodesFromXpath("//td//a", doc);
-            
-            var helpResults = []
+
+            const n = nodesFromXpath("//td//a", doc);
             n.forEach((node) => {
+
+              
+
               helpResults.push(
                 {
                   href: "https://"+settings.subdomain+".getalma.com"+node.getAttribute("href"),
@@ -138,14 +195,14 @@ var getStudentsFromAProcess = async function(process, method) {
             });
           }
 
-          // If successful
           resolve(helpResults);
         } else {
-          // If failed
+
           reject({
             status: request.status,
             statusText: request.statusText
           });
+        
         }
   
       };
@@ -161,9 +218,8 @@ var getStudentsFromAProcess = async function(process, method) {
 }
 
 const getStudentsFromProcesses = async function(data) {
-  const subdomain = await options.get('subdomain');
-  const almaStartBrowserNotifications = await options.get('almaStartBrowserNotifications');
-
+  const settings = await options.get();
+  
   const oldData = await searchData.get('startStudents'); 
   
   
@@ -171,17 +227,21 @@ const getStudentsFromProcesses = async function(data) {
     data.Processes.map( p => getStudentsFromAProcess(p) )
   )
   const d = [].concat(...dA)
-
+  
    
 
 
   const notifications = newObjects(oldData, d)
   if (notifications.length > 0) {
     searchData.startStudents.set(d);
-    notifyAlmaStart(notifications)
+    if(settings.almaStartBrowserNotifications || settings.almaStartEmailNotifications)
+      notifyAlmaStart(notifications)
+    
+      
+  } else if (oldData.length != d.length) {
+    searchData.startStudents.set(d);
   }
-  
-  console.log(notifications)
+
   
 }
 
@@ -255,7 +315,7 @@ const main = async function() {
         browser.webRequest.onBeforeRequest.addListener(
           doBlocking,
           {
-            urls: ["https://"+subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
+            urls: ["https://"+settings.subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
             types: ["script"]
           },
           ["blocking"]
@@ -268,16 +328,27 @@ const main = async function() {
 
   }
 
-  initialize().then(
-    () => {
-      main();
-      getProcesses(getStudentsFromProcesses);
-      getGradeLevels();
-    
-      setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
-      setInterval(getGradeLevels, 60 * 60000);
-    }
-  )
+
+  const doInitialize = function(redirect=true) {
+    initialize().then(
+      () => {
+        main();
+        getProcesses(getStudentsFromProcesses);
+        getGradeLevels();
+      
+        setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
+        setInterval(getGradeLevels, 60 * 60000);
+      }
+    ).catch( e => { console.log(e);
+      if(redirect) {
+        chrome.tabs.create({url:"https://"+settings.subdomain+".getalma.com/", active:true}, function(tab){
+            console.log("Login") //chrome.tabs.remove(tab.id);
+        });
+      }
+      setTimeout(doInitialize, 10*1000, false); return e; } )
+  }
+
+  initializeDatastore().then( ()=> { doInitialize() } ).catch( e => { console.log(e); return e; } )
 
 
 
