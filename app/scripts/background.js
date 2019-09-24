@@ -6,6 +6,83 @@ import {notifyAlmaStart} from './background-notifications'
 
 var settings = []
 
+
+
+const doBlocking = () => { return {cancel: true}; }
+
+const changeReporter = (change, key) => {
+  console.log(`${key} changed from ${change.oldValue} to ${change.newValue}`);
+}
+
+const deactivateBlocking = () => {
+  if(browser.webRequest.onBeforeRequest.hasListener(doBlocking)){
+    browser.webRequest.onBeforeRequest.removeListener(doBlocking);
+  }
+}
+
+const activateBlocking = (subdomain) => {
+    
+    deactivateBlocking()
+
+    browser.webRequest.onBeforeRequest.addListener(
+      doBlocking,
+      {
+        urls: ["https://"+subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
+        types: ["script"]
+      },
+      ["blocking"]
+    );
+}
+
+
+const subdomainListener = (change, key) => {
+  changeReporter(change,key)
+  activateBlocking(change.newValue);
+}
+
+const almaStartListener = (change, key) => {
+  changeReporter(change,key)
+  getProcesses(getStudentsFromProcesses)
+}
+
+const stayAliveListener = (change, key) => {
+  
+  changeReporter(change, key)
+
+  if (change.newValue) {
+    activateBlocking(settings.subdomain)
+  } else { 
+    deactivateBlocking() 
+  }
+  
+}
+
+const optionsListeners = [
+  {
+    key: 'subdomain', listener: subdomainListener
+  },
+  {
+    key: 'apiStudentUUID', listener: changeReporter
+  },
+  {
+    key: 'almaStartIgnoreApplicants', listener: almaStartListener
+  },
+  {
+    key: 'almaStartIgnoreEnrolled', listener: almaStartListener
+  },
+  {
+    key: 'stayAlive', listener: stayAliveListener
+  },
+]
+
+const addOptionsListeners = () => {
+  optionsListeners.forEach(
+    ({key, listener}) => {
+      options[key].addListener(listener)
+    }
+  )
+}
+
 const initializeDatastore = function() {
   
   return Promise.all([
@@ -14,10 +91,15 @@ const initializeDatastore = function() {
 
 }
 
+
+
+
 const initialize = async function() {
 
   settings = await options.get()
   var request = new XMLHttpRequest();
+
+  
   
   return new Promise(function (resolve, reject) {
       request.onreadystatechange = function () {
@@ -114,8 +196,8 @@ const getProcesses = async function(callback) {
 }
 
 const getGradeLevels = async function() {
-  const subdomain = await options.get('subdomain');
-  const url = "https://"+subdomain+".getalma.com/settings"
+  settings = await options.get()
+  const url = "https://"+settings.subdomain+".getalma.com/settings"
 
   var req = new XMLHttpRequest();
   req.open("GET", url, true);
@@ -152,7 +234,7 @@ const getGradeLevels = async function() {
 }
 
 var getStudentsFromAProcess = async function(process, method) {
-  const settings = await options.get()
+  settings = await options.get()
   
   var request = new XMLHttpRequest();
   
@@ -176,18 +258,23 @@ var getStudentsFromAProcess = async function(process, method) {
 
             const n = nodesFromXpath("//td//a", doc);
             n.forEach((node) => {
+              const href = "https://"+settings.subdomain+".getalma.com"+node.getAttribute("href")
+              const [processId, studentId, instanceId] = href.split("/").slice(Math.max(href.split("/").length - 3, 1))
 
               
 
               helpResults.push(
                 {
-                  href: "https://"+settings.subdomain+".getalma.com"+node.getAttribute("href"),
+                  href: href,
                   name: encode(node.textContent.trim()),
                   grade: encode(node.parentElement.parentElement.children[2].textContent.trim()),
                   stage: encode(node.parentElement.parentElement.children[3].textContent.trim()),
                   status: encode(node.parentElement.parentElement.children[4].textContent.trim()),
                   updated: encode(node.parentElement.parentElement.children[5].textContent.trim()),
                   process: process.title,
+                  processId: processId,
+                  studentId: studentId,
+                  instanceId: instanceId,
                   enrolled: enrolled,
                   
                 }
@@ -218,8 +305,10 @@ var getStudentsFromAProcess = async function(process, method) {
 }
 
 const getStudentsFromProcesses = async function(data) {
-  const settings = await options.get();
+  settings = await options.get();
   
+  
+
   const oldData = await searchData.get('startStudents'); 
   
   
@@ -242,102 +331,139 @@ const getStudentsFromProcesses = async function(data) {
     searchData.startStudents.set(d);
   }
 
+
+}
+
+const hasNotes = function(str) {
+  return ~str.indexOf('Alma+')
+}
+
+const buildNotesUrl = function(subdomain, apiStudentUUID, offset=0) {
+  const baseUrl = `https://${subdomain}.getalma.com/student/${apiStudentUUID}/load-notes?offset=`
+  const tailUrl = `&r=20`
+  return baseUrl + offset + tailUrl
+}
+
+const getNotesGroup = async function(page) {
+  const url = buildNotesUrl(settings.subdomain, settings.apiStudentUUID, page*5)
+
+  var request = new XMLHttpRequest();
   
+  return new Promise(function (resolve, reject) {
+      request.onreadystatechange = function () {
+        
+        if (request.readyState !== 4) return;
+
+        if (request.status >= 200 && request.status < 300) {
+          
+          const results = JSON.parse(request.responseText)
+
+          const body = clearBody(results.Message.html);
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(body, "text/html");
+          console.log("doc", doc)
+          
+          console.log("hasNotes", hasNotes)
+          const notesResults = []
+
+          if( hasNotes(body) )
+            {
+
+            const n = nodesFromXpath("//p", doc);
+
+            n.forEach((node) => {
+              console.log("Node", node)
+              
+              if(hasNotes(node.textContent))
+              {
+                notesResults.push(
+                  {
+                    name: JSON.parse(node.textContent),
+                  }
+                )
+              }
+            });
+          }
+
+          resolve(notesResults);
+        } else {
+
+          reject({
+            status: request.status,
+            statusText: request.statusText
+          });
+        
+        }
+  
+      };
+  
+      // Setup our HTTP request
+      request.open('GET', url, true);
+      request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      // Send the request
+      request.send();
+  
+    });
+  
+
+  
+
+}
+
+const getNotes = async function() {
+  settings = await options.get();
+  
+  
+
+
 }
 
 
-const doBlocking = function(){ return {cancel: true}; }
+
 
     // Fill in default values for any unset settings.
 const main = async function() {
-  const settings = await options.get();
-    console.log(settings.stayAlive)
+  settings = await options.get();
+  
 
-    if (settings.stayAlive) {
-      browser.webRequest.onBeforeRequest.addListener(
-        doBlocking,
-        {
-          urls: ["https://"+settings.subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
-          types: ["script"]
-        },
-        ["blocking"]
-      );
-    }
+  return new Promise(function (resolve, reject) {
 
-    // A property is automatically created on the StorageArea object for each
-    // setting with get(), set(), and other functions. Use addListener() to run
-    // a function when a setting changes.
-    options.subdomain.addListener((change, key) => {
-        console.log(`subdomain changed from ${change.oldValue} to ${change.newValue}`);
-        subdomain = change.newValue;
+    try {
 
-        if(browser.webRequest.onBeforeRequest.hasListener(doBlocking)){
-          browser.webRequest.onBeforeRequest.removeListener(doBlocking);
-
-          browser.webRequest.onBeforeRequest.addListener(
-            doBlocking,
-            {
-              urls: ["https://"+subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
-              types: ["script"]
-            },
-            ["blocking"]
-          );
-
-          // callback_named is listening
-        }
-
-    });
-
-    options.apiStudentUUID.addListener((change, key) => {
-      console.log(`apiStudent changed from ${change.oldValue} to ${change.newValue}`);
-    });
-
-    searchData.startStudents.addListener((change, key) => {
-      console.log(`startStudents changed`);
-      
-    });
-
-    options.almaStartIgnoreApplicants.addListener((change, key) => {
-       getProcesses(getStudentsFromProcesses);
-      
-    });
-
-    options.almaStartIgnoreEnrolled.addListener((change, key) => {
-       getProcesses(getStudentsFromProcesses);
-      
-    });
-
-    options.stayAlive.addListener((change, key) => {
-      if(browser.webRequest.onBeforeRequest.hasListener(doBlocking)){
-        browser.webRequest.onBeforeRequest.removeListener(doBlocking);
+      if (settings.stayAlive) {
+        activateBlocking(settings.subdomain)
       }
-      if (change.newValue) {
-        browser.webRequest.onBeforeRequest.addListener(
-          doBlocking,
-          {
-            urls: ["https://"+settings.subdomain+".getalma.com/ui/alma/alma-session-timeout.js*"],
-            types: ["script"]
-          },
-          ["blocking"]
-        );  
-      }
-      
-      console.log(`apiStudent changed from ${change.oldValue} to ${change.newValue}`);
-    });
- 
 
+      addOptionsListeners();
+      getNotesGroup(0).then((r)=>{ searchData.notes.set(r) });
+      searchData.notes.get().then( (notes) => {console.log(notes)})
+
+      searchData.startStudents.addListener(changeReporter);
+    
+    resolve()
+  } catch (e) {
+    reject(e)
   }
 
+  })
+}
 
-  const doInitialize = function(redirect=true) {
+
+const doInitialize = function(redirect=true) {
     initialize().then(
       () => {
-        main();
-        getProcesses(getStudentsFromProcesses);
-        getGradeLevels();
-      
-        setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
-        setInterval(getGradeLevels, 60 * 60000);
+        main().then(
+         () => {
+            if(settings.almaStart && (!settings.almaStartIgnoreApplicants || !settings.almaStartIgnoreEnrolled))
+              getProcesses(getStudentsFromProcesses);
+
+            getGradeLevels();
+          
+            setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
+            setInterval(getGradeLevels, 60 * 60000);
+          }
+        ).catch( e => {throw e});
+        
       }
     ).catch( e => { console.log(e);
       if(redirect) {

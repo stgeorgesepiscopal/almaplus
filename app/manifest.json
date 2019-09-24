@@ -94,6 +94,7 @@
     "webNavigation",
     "webRequest",
     "webRequestBlocking",
+    "unlimitedStorage",
     "<all_urls>"
   ]
 }

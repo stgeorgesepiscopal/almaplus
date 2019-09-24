@@ -55,6 +55,7 @@ export interface SearchDocuments {
     startNotifications: Array<Object>;
     gradeLevels: Array<Object>;
     messages: Array<Object>;
+    notes: Array<Object>;
 };
 
 export var searchData = StorageArea.create<SearchDocuments>({
@@ -63,6 +64,7 @@ export var searchData = StorageArea.create<SearchDocuments>({
         startNotifications: [{}],
         gradeLevels: [{}],
         messages: [{}],
+        notes: [{}],
 
     },
     storageArea: 'local'

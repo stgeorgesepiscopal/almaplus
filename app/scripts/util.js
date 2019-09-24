@@ -133,3 +133,7 @@ export function injectScript(file_path, tag='html', type='script', text='') {
   }
   node.appendChild(script);
 }
+
+export function escapeDoubleQuotes(str) {
+	return str.replace(/\\([\s\S])|(")/g,"\\$1$2"); 
+}

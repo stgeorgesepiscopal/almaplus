@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Tab from './components/Tab/Tab'
 import {injectScript} from './util'
+import {Notes} from './components/Note/Note'
+import {searchData, useStore} from './storage'
 
 const tabLinks = [
     {
@@ -26,8 +28,22 @@ notesDiv.classList.add("profile-notes")
 notesDiv.innerHTML = ``
 document.getElementById("content").appendChild(notesDiv)
 
+async function renderNotes() {
+    const notes = await searchData.notes.get()
+    const n = notes.map( (note) => { return {name: note.name.source, body: note.name.body, date: note.name.uuid, uuid: note.name.uuid } } ) 
+    return n
+    
+}
 
-ReactDOM.render(<div id="notes-div" style={{display: 'none'}}><ul><li><span className="date dimmed">Yesterday</span><img src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGJhc2VQcm9maWxlPSJmdWxsIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzZmMxYzgiIC8+PHRleHQgeD0iMzAiIHk9IjQxLjIiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EiIGZvbnQtc2l6ZT0iMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPlJNPC90ZXh0Pjwvc3ZnPg==" alt="" className="photo profile-pic profile-pic-medium" /><h5>Meyers, Ryan</h5><p>A note</p></li></ul></div>, notesDiv)
+renderNotes().then( (n) =>
+    {
+        
+        ReactDOM.render(<div id="notes-div" style={{display: 'none'}}><Notes notes={n}></Notes></div>, notesDiv)
+        
+    }
+)
+
+
 
 ReactDOM.render(
     <Tab className="menu-site" tabLinks={tabLinks} tabHandles={tabHandles} />,

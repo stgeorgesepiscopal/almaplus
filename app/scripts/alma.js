@@ -1,14 +1,15 @@
 import { options, searchData } from './storage';
+import { escapeDoubleQuotes } from './util'
 
 export const saveNote = async (note ) => {
     var settings = await options.get()
-    const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudent}/save-note`
-    fetch(url, {"body":`{"UserId":"${settings.apiStudent}","RoleId":"20","Note":"${note}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});   
+    const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudentUUID}/save-note`
+    fetch(url, {"body":`{"UserId":"${settings.apiStudent}","RoleId":"20","Note":"${escapeDoubleQuotes(note)}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});   
 }
 
 export const deleteNote = async(noteId ) => {
     var settings = await options.get()
-    const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudent}/delete-note`
+    const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudentUUID}/delete-note`
     fetch(url, {"body":`{"NoteId":"${noteId}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});   
 }
 
