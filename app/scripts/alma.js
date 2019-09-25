@@ -4,7 +4,7 @@ import { escapeDoubleQuotes } from './util'
 export const saveNote = async (note ) => {
     var settings = await options.get()
     const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudentUUID}/save-note`
-    fetch(url, {"body":`{"UserId":"${settings.apiStudent}","RoleId":"20","Note":"${escapeDoubleQuotes(note)}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});   
+    return await fetch(url, {"body":`{"UserId":"${settings.apiStudentUUID}","RoleId":"20","Note":"${escapeDoubleQuotes(JSON.stringify(note))}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { return r }).catch( (e) => {throw e});   
 }
 
 export const deleteNote = async(noteId ) => {

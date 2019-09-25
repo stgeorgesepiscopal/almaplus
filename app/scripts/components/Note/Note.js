@@ -16,6 +16,23 @@ const useStyles = makeStyles(theme => ({
           width: 50,
           
         },
+      notes: {
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap'
+      },
+      note : {
+        marginLeft: '5px'
+      },
+      noteh5: {
+        fontSize: '12px !important',
+        display: 'inline',
+        paddingLeft: '5px'
+      },
+      noteDate: {
+        fontSize: '10px',
+        float: 'none !important'
+      },
       textField: {
         marginLeft: theme.spacing(1),
         marginRight: theme.spacing(1),
@@ -59,7 +76,7 @@ const MenuProps = {
 
 export function Note(props) {
     
-        const { name, body, date, ...other } = props;
+        const { author, body, date, ...other } = props;
         
 
         const classes = useStyles();
@@ -87,11 +104,12 @@ export function Note(props) {
         
             return (
               <>
-                <li>
-                  <span className="date dimmed">{date}</span>
-                  <img src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGJhc2VQcm9maWxlPSJmdWxsIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMzAiIGZpbGw9IiMzZmMxYzgiIC8+PHRleHQgeD0iMzAiIHk9IjQxLjIiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EiIGZvbnQtc2l6ZT0iMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNmZmZmZmYiPlJNPC90ZXh0Pjwvc3ZnPg==" alt="" className="photo profile-pic profile-pic-medium" />
-                  <h5>{name}</h5>
+                <li className={classes.note}>
                   <p>{body}</p>
+                  <span className={classes.noteDate +" date dimmed"} >{date}</span>
+                  <img src={chrome.runtime.getURL('images/icon-128.png')} alt="" className="photo profile-pic profile-pic-medium" />
+                  <h5 className={classes.noteh5}>{author}</h5>
+                  
                 </li>
               </>
             );
@@ -110,10 +128,11 @@ export function Note(props) {
   
 
 export function Notes(props) {
+  const classes = useStyles();
   const notes = props.notes
-  const noteArray = notes.map( (n) => <Note key={n.uuid} name={n.name} date={n.date} body={n.body} ></Note> )
+  const noteArray = notes.map( (n) => <Note key={n.uuid} author={n.author} date={n.date} body={n.body} ></Note> )
   
-  return (<><ul>{noteArray}</ul></>);
+  return (<><ul className={classes.notes} id="noteList">{noteArray}</ul></>);
   
   //const [notes, u] = useStore(searchData.notes, [])
   //return  (<><ul><li>Something</li></ul></>);

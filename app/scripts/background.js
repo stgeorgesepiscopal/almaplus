@@ -1,5 +1,5 @@
 import { options, searchData } from './storage';
-import { clearBody, nodesFromXpath, newObjects, log } from './util'
+import { clearBody, nodesFromXpath, newObjects, log, ms } from './util'
 import { sendMessage } from './alma'
 import {encode} from 'he'
 import {notifyAlmaStart} from './background-notifications'
@@ -361,9 +361,7 @@ const getNotesGroup = async function(page) {
           const body = clearBody(results.Message.html);
           const parser = new DOMParser();
           const doc = parser.parseFromString(body, "text/html");
-          console.log("doc", doc)
           
-          console.log("hasNotes", hasNotes)
           const notesResults = []
 
           if( hasNotes(body) )
@@ -371,14 +369,28 @@ const getNotesGroup = async function(page) {
 
             const n = nodesFromXpath("//p", doc);
 
-            n.forEach((node) => {
-              console.log("Node", node)
+            n.forEach((p) => {
+              console.log("Node", p)
               
-              if(hasNotes(node.textContent))
+              if(hasNotes(p.textContent))
               {
+                const json = JSON.parse(p.textContent)
+                const dateStr = p.parentElement.children[0].textContent
+                const date = new Date()
+                
+                if(dateStr == "Yesterday") date.setDate(date.getDate() - 1)
+                else if(dateStr != "Today") date = new Date(dateStr)
+
                 notesResults.push(
                   {
-                    name: JSON.parse(node.textContent),
+                    uuid: p.parentElement.children[4].children[0].value,
+                    author: p.parentElement.children[2].textContent,
+                    date: date.toDateString(),
+                    person: json.uuid,
+                    body: json.body,
+                    type: json.type,
+                    source: json.source,
+                    
                   }
                 )
               }
@@ -410,11 +422,26 @@ const getNotesGroup = async function(page) {
 
 }
 
-const getNotes = async function() {
-  settings = await options.get();
+const getNotes = async function(i=0) {
+  settings = await options.get()
+  const notes = await searchData.notes.get()
   
-  
+  const dA = await Promise.all([
+    getNotesGroup(i),
+    getNotesGroup(i+1),
+    getNotesGroup(i+2),
+    getNotesGroup(i+3)
+  ])
+  const d = [].concat(...dA)
 
+  const newNotes = newObjects(notes, d)
+
+  if ( newNotes.length > 0) {
+    notes.push(...newNotes)
+    await searchData.notes.set(notes)
+    if (dA[3].length > 0)
+      getNotes(i+4)
+  }
 
 }
 
@@ -434,9 +461,10 @@ const main = async function() {
         activateBlocking(settings.subdomain)
       }
 
-      addOptionsListeners();
-      getNotesGroup(0).then((r)=>{ searchData.notes.set(r) });
-      searchData.notes.get().then( (notes) => {console.log(notes)})
+      addOptionsListeners()
+      //getNotesGroup(0).then((r)=>{ searchData.notes.set(r) });
+      
+      // searchData.notes.get().then( (notes) => {console.log(notes)})
 
       searchData.startStudents.addListener(changeReporter);
     
@@ -457,10 +485,12 @@ const doInitialize = function(redirect=true) {
             if(settings.almaStart && (!settings.almaStartIgnoreApplicants || !settings.almaStartIgnoreEnrolled))
               getProcesses(getStudentsFromProcesses);
 
-            getGradeLevels();
+            getGradeLevels()
+            getNotes()
           
-            setInterval(getProcesses, 60 * 5000, getStudentsFromProcesses);
-            setInterval(getGradeLevels, 60 * 60000);
+            setInterval(getProcesses, ms(5), getStudentsFromProcesses);
+            setInterval(getGradeLevels, ms(60));
+            setInterval(getNotes, ms(1));
           }
         ).catch( e => {throw e});
         

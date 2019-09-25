@@ -137,3 +137,7 @@ export function injectScript(file_path, tag='html', type='script', text='') {
 export function escapeDoubleQuotes(str) {
 	return str.replace(/\\([\s\S])|(")/g,"\\$1$2"); 
 }
+
+export function ms(m){
+  return m * 1000 * 60
+}

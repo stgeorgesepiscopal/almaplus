@@ -48,11 +48,11 @@ export const searchByEmail = function(query, callback) {
         const results = JSON.parse(req.responseText)
         console.log(results)
         results.sort( (a,b) => {
-            var bigStringA = a.PreferredName.toLowerCase().padEnd(20," ")+
+            var bigStringA = a.PreferredName ? a.PreferredName.toLowerCase().padEnd(20," ") : a.FirstName.toLowerCase().padEnd(20," ") +
                              a.FirstName.toLowerCase().padEnd(20," ") +
                              a.LastName.toLowerCase().padEnd(20," ") +
                              a.MiddleName.toLowerCase().padEnd(20," ")
-            var bigStringB = b.PreferredName.toLowerCase().padEnd(20," ") +
+            var bigStringB = b.PreferredName ? b.PreferredName.toLowerCase().padEnd(20," ") : b.FirstName.toLowerCase().padEnd(20," ") +
                              b.FirstName.toLowerCase().padEnd(20," ") +
                              b.LastName.toLowerCase().padEnd(20," ") +
                              b.MiddleName.toLowerCase().padEnd(20," ")

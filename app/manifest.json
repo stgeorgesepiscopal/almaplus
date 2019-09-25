@@ -2,7 +2,7 @@
   "name": "__MSG_appName__",
   "short_name": "__MSG_appShortName__",
   "description": "__MSG_appDescription__",
-  "version": "2019.9.23",
+  "version": "2019.9.25",
   "manifest_version": 2,
   "default_locale": "en",
   "icons": {
@@ -14,7 +14,7 @@
     "scripts": [
       "scripts/background.js",
       "scripts/omnibox.background.js",
-      "scripts/searchintercept.js"
+      "scripts/messaging.js"
     ]
     
   },
@@ -64,6 +64,9 @@
       "matches": [
         "http://*.getalma.com/workflows/processes/*/*/*",
         "https://*.getalma.com/workflows/processes/*/*/*"
+      ],
+      "css": [
+        "styles/almastart.css"
       ],
       "js": [
         "scripts/almastart.layout.content.js"
