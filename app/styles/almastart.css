@@ -1,0 +1,2 @@
+.date, #notes-div h5, #notes-div img { opacity: 0.2 }
+#notes-div li:hover .date, #notes-div li:hover h5, #notes-div li:hover img { opacity: 1.0 }
