@@ -1,2 +1,22 @@
 .date, #notes-div h5, #notes-div img { opacity: 0.2 }
 #notes-div li:hover .date, #notes-div li:hover h5, #notes-div li:hover img { opacity: 1.0 }
+.cornered-lr {  position: absolute !important;
+  text-align: right !important;
+  line-height: 1em !important;
+  font-size: 0.5em !important;
+  text-shadow: rgba(0, 0, 0, 0.5) -1px 1px 4px;
+  bottom: 0px !important;
+  color: black;
+  opacity: 0.2;
+}
+.noteLinkIcon {
+    text-shadow: rgba(0, 0, 0,0.5) -2px 1px 5px;
+}
+
+a:hover .noteLinkIcon, a:hover .cornered-lr {
+    text-shadow: rgba(0, 0, 0,0.5) -2px 1px 1px;
+   
+}
+a:hover .cornered-lr {
+    opacity: 0.6;
+}

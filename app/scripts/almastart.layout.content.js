@@ -4,7 +4,7 @@ import Tab from './components/Tab/Tab'
 
 import {injectScript} from './util'
 import {Notes} from './components/Note/Note'
-import {searchData, useStore} from './storage'
+import {options, searchData, useStore} from './storage'
 
 const tabLinks = [
     {
@@ -31,12 +31,21 @@ document.getElementById("content").appendChild(notesDiv)
 
 const [processId, studentId, instanceId] = document.location.pathname.split("/").slice(Math.max(document.location.pathname.split("/").length - 3, 1))
 
+var newNoteTemplate = ''
+var templateLines = 4
+
 async function renderNotes() {
     
     const notes = await searchData.notes.get()
+    
     //console.log(notes)
     //const n = notes.map( (note) => { return {name: note.author, body: note.body, date: note.date, uuid: note.uuid } } ) 
-    return notes.filter( note => note.person == studentId )
+    const filteredNotes = notes.filter( note => note.person == studentId ).sort( (a,b)=>{ return a.dateInt > b.dateInt })
+    if (filteredNotes.length == 0) {
+        newNoteTemplate = await options.almaStartNewNoteTemplate.get()
+        templateLines = (newNoteTemplate.match(/\n/g) || []).length + 1
+    }
+    return filteredNotes
     
 }
 
@@ -47,7 +56,7 @@ renderNotes().then( (n) =>
         <div id="notes-div" style={{display: 'none'}}>
             <Notes notes={n}></Notes>
             <form class="pure-form" >
-                <textarea class="pure-input-1" id="addNoteTextArea" name="Note" rows="4" placeholder="add your note here" required=""></textarea>
+                <textarea class="pure-input-1" id="addNoteTextArea" name="Note" rows={templateLines} placeholder="add your note here" required="" defaultValue={newNoteTemplate}></textarea>
                 <div class="buttons">
                     <span class="pure-button pure-button-primary" id="addNoteButton">Add Note</span>
                 </div>

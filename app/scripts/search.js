@@ -13,7 +13,6 @@ async function initialize() {
 initialize();
 
 
-
 export const searchByEmail = function(query, callback) {
     var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
     var req = new XMLHttpRequest();
@@ -170,12 +169,41 @@ export const searchHelp = function(query, callback) {
             
   }
 
+const _searchAlmaStart = async function(query) {
+  const fuse = new Fuse(await searchData.get('startStudents'), {keys: ['name','process'], tokenize: true});
+  return fuse.search(query)
+}
+
 export const searchAlmaStart = async function(query, callback) {
-    const fuse = new Fuse(await searchData.get('startStudents'), {keys: ['name','process']});
+    if(await options.almaStartIncludeNotesInSearch.get()){
+      callback({AlmaStartResults: (await _searchAlmaStartNotes(query)).concat(...await _searchAlmaStart(query)) }); 
+    } else {
+      callback({AlmaStartResults: await _searchAlmaStart(query) });   
+    }
     
-    callback({AlmaStartResults: fuse.search(query)}); 
-    return new XMLHttpRequest();
   }
+
+const _searchAlmaStartNotes = async function(query) {
+    const startStudents = await searchData.get('startStudents')
+    const notes = await searchData.get('notes')
+    console.log(notes)
+
+    const searchableNotes = notes.map( (n) => { return n.body.split(/\s+/).map( (w) => { return {word: w, person: n.person} } ) } )
+    console.log(searchableNotes)
+
+    const notesFuse = new Fuse([].concat(...searchableNotes), {id: 'person', threshold: 0.3, keys:['word']})
+    
+    const notesMatches = Array.from(new Set(notesFuse.search(query)))
+    console.log(notesMatches)
+    
+    const matches = startStudents.filter( (a) => {return ~notesMatches.indexOf(a.studentId)})
+    return matches
+    
+  }
+
+export const searchAlmaStartNotes = async function(query, callback) {
+  callback({AlmaStartResults: await _searchAlmaStartNotes(query)})
+}
 
 
 
@@ -187,7 +215,8 @@ export const obCommands = {
     'locate': searchWithLocations,
     'help': searchHelp,
     'start': searchAlmaStart,
-    'as': searchAlmaStart
+    'as': searchAlmaStart,
+    'notes': searchAlmaStartNotes,
   }
   
   

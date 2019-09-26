@@ -17,6 +17,8 @@ export interface OptionItems {
     almaStartIgnoreApplicants: boolean;
     almaStartBrowserNotifications: boolean;
     almaStartEmailNotifications: boolean;
+    almaStartIncludeNotesInSearch: boolean;
+    almaStartNewNoteTemplate: string;
     stayAlive: boolean;
     googleApiCredentials: string;
     googleApiAccount: string;
@@ -24,6 +26,7 @@ export interface OptionItems {
     defaultSearch:string;
     attendanceIgnoreClasses:Array<string>;
     userUUID: string;
+    debug: boolean;
 }
 
 export var options = StorageArea.create<OptionItems>({
@@ -38,14 +41,17 @@ export var options = StorageArea.create<OptionItems>({
         almaStartIgnoreEnrolled: false,
         almaStartIgnoreApplicants: false,
         almaStartBrowserNotifications: true,
-        almaStartEmailNotifications: true,
+        almaStartEmailNotifications: false,
+        almaStartIncludeNotesInSearch: false,
+        almaStartNewNoteTemplate: '',
         stayAlive: false,
         googleApiCredentials: '',
         googleApiAccount: '',
         sheetId: '',
         defaultSearch: 'search',
         attendanceIgnoreClasses: [],
-        userUUID: ''
+        userUUID: '',
+        debug: false
     },
     storageArea: 'sync'
 });
@@ -64,7 +70,7 @@ export var searchData = StorageArea.create<SearchDocuments>({
         startNotifications: [{}],
         gradeLevels: [{}],
         messages: [{}],
-        notes: [{}],
+        notes: [],
 
     },
     storageArea: 'local'

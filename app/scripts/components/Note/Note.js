@@ -105,8 +105,22 @@ export function Note(props) {
             await update(e.target.value);
           }
 
+        function formatLinks(v) {
+          let icon = false
+          
+          if (~v.indexOf('drive.google.com')){
+            icon = "fab fa-google-drive"
+          } else if(~v.indexOf('.pdf')) {
+            icon = "fas fa-file-pdf"
+          }
+          if(icon){
+            return `<span class="fa-stack fa-2x"><i class="fa-stack-2x ${icon} noteLinkIcon"></i><i class="fa-stack-1x fa-xs fas fa-external-link-alt cornered-lr"></i></span>`
+          }
+          return v.length > 24 ? v.slice(8, 24) + '…' : v.slice(8)
+        }
+
         function createMarkup() { 
-          return { __html: linkifyHtml(body.replace(/(?:\r\n|\r|\n)/g, '<br>'), {format: (v) => v.length > 24 ? v.slice(8, 24) + '…' : v.slice(8) } ) }
+          return { __html: linkifyHtml(body.replace(/(?:\r\n|\r|\n)+/g, '<br>'), {format: {url: formatLinks, email: (v) => v } } ) }
            
           };
     

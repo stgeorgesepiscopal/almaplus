@@ -70,7 +70,7 @@ async function doSearch(text, callback) {
               
               results.push({
                   first: entry.name,
-                  
+                  profileUrl: path,
                   category: entry.process,
                   content: path ,
                   description: description
@@ -184,7 +184,7 @@ async function doSearchStuff(query){
 async function doSaveNote(note, callback) {
     saveNote(note).then( (r)=> {
         console.log(r)
-        watchers.notes.get().then((v) => {watchers.notes.set(!v)})
+        watchers.notesWatcher.get().then((v) => {watchers.notesWatcher.set(!v)})
 
         callback({success: true, note: note})
     }).catch( (e) => {

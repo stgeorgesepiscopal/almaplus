@@ -103,7 +103,9 @@ const initializeDatastore = function() {
   
   return Promise.all([
       options.initDefaults(),
-      searchData.initDefaults()])
+      searchData.initDefaults(),
+      watchers.initDefaults()
+    ])
 
 }
 
@@ -391,19 +393,21 @@ const getNotesGroup = async function(page) {
               if(hasNotes(p.textContent))
               {
                 const json = JSON.parse(p.textContent.replace(/\n/g, "\\n"))
-                console.log("JSON")
-                console.log(json)
                 const dateStr = p.parentElement.children[0].textContent
-                const date = new Date()
+                let date = new Date()
+                
                 
                 if(dateStr == "Yesterday") date.setDate(date.getDate() - 1)
+                else if(~dateStr.indexOf('days')) { date.setDate(date.getDate() - parseInt(dateStr)) }
                 else if(dateStr != "Today") date = new Date(dateStr)
+                date.setHours(0,0,0,0)
 
                 notesResults.push(
                   {
                     uuid: p.parentElement.children[4].children[0].value,
                     author: p.parentElement.children[2].textContent,
                     date: date.toDateString(),
+                    dateInt: date.valueOf(),
                     person: json.uuid,
                     body: json.body,
                     type: json.type,
@@ -443,22 +447,34 @@ const getNotesGroup = async function(page) {
 const getNotes = async function(i=0) {
   settings = await options.get()
   const notes = await searchData.notes.get()
+  console.log(notes.length, i)
+  var d = []
+  var dA = [[],[],[],[1]]
   
-  const dA = await Promise.all([
-    getNotesGroup(i),
-    getNotesGroup(i+1),
-    getNotesGroup(i+2),
-    getNotesGroup(i+3)
-  ])
-  const d = [].concat(...dA)
-
+  if(i>0) {
+    dA = await Promise.all([
+      getNotesGroup(i),
+      getNotesGroup(i+1),
+      getNotesGroup(i+2),
+      getNotesGroup(i+3)
+    ])
+    i = i+3
+    d = [].concat(...dA)
+  } else {
+    d = await getNotesGroup(i)
+    
+  }
+  
   const newNotes = newObjects(notes, d)
-
+  console.log(newNotes)
+  
+  
   if ( newNotes.length > 0) {
     notes.push(...newNotes)
     await searchData.notes.set(notes)
+    
     if (dA[3].length > 0)
-      getNotes(i+4)
+      getNotes(i+1)
   }
 
 }
@@ -486,7 +502,7 @@ const main = async function() {
       // searchData.notes.get().then( (notes) => {console.log(notes)})
 
       searchData.startStudents.addListener(changeReporter)
-      watchers.notesWatcher.addListener(changeReporter)
+      watchers.notesWatcher.addListener(notesListener)
     
     resolve()
   } catch (e) {

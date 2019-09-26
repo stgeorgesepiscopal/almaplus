@@ -8,6 +8,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 
+
 import Typography from '@material-ui/core/Typography';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -15,7 +16,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import SvgIcon from '@material-ui/core/SvgIcon'
 import CheckIcon from '@material-ui/icons/Check'
 
-import { options, useStore, inputId, searchData } from './storage';
+import { options, useStore, inputId, searchData, watchers } from './storage';
 import FileInput from './components/FileInput/FileInput';
 import {Option} from './components/Option/Option';
 import {TabPanel, a11yProps} from './components/TabPanel/TabPanel'
@@ -97,6 +98,12 @@ function App() {
 
   }
 
+  async function resetNotes() {
+    await searchData.notes.set([])
+    watchers.notesWatcher.get().then((v) => {watchers.notesWatcher.set(!v)})
+
+  }
+
   
 
   
@@ -125,6 +132,7 @@ function App() {
             <Tab label="Messaging" {...a11yProps(2)} />
             <Tab label="Other" {...a11yProps(3)} />
             <Tab label="Alma Start" {...a11yProps(4)} style={{display: ((values['almaStart']) ? 'block' : 'none') }} />
+            <Tab label="Developer" {...a11yProps(5)} style={{display: ((values['debug']) ? 'block' : 'none') }} />
           </Tabs>
         </AppBar>
 
@@ -144,6 +152,7 @@ function App() {
             <Option type="text" name="apiStudentUUID"  />
             <Option type="checkbox" name="almaStart" />
             <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
+            <Option type="checkbox" name="debug" />
           </TabPanel>
           
           {/* Attendance */}
@@ -167,9 +176,17 @@ function App() {
           <TabPanel value={tabValue} index={4}> 
             <Option type="checkbox" name="almaStartPDFButtons"  />
             <Option type="checkbox" name="almaStartIgnoreEnrolled"  />
+            <Option type="checkbox" name="almaStartIncludeNotesInSearch"  />
             <Option type="checkbox" name="almaStartIgnoreApplicants"  />
             <Option type="checkbox" name="almaStartBrowserNotifications"  />
             <Option type="checkbox" name="almaStartEmailNotifications"  />
+            <Option type="text" name="almaStartNewNoteTemplate" multiline />
+          </TabPanel>
+
+          {/* Developer */}
+          <TabPanel value={tabValue} index={5}> 
+          <Typography>Warning! Don't mess with these unless you know what you're doing!</Typography>
+            <Button onClick={resetNotes}>Reset Notes</Button>
           </TabPanel>
 
         </form>
