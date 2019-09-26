@@ -1,4 +1,4 @@
-import { options, searchData } from './storage';
+import { options, watchers, searchData } from './storage';
 import { search, searchByEmail, searchWithLocations, locateStudent, searchHelp, searchAlmaStart, obCommands, checkForCommands } from './search'
 import {log} from './util'
 import {saveNote} from './alma'
@@ -184,7 +184,8 @@ async function doSearchStuff(query){
 async function doSaveNote(note, callback) {
     saveNote(note).then( (r)=> {
         console.log(r)
-        
+        watchers.notes.get().then((v) => {watchers.notes.set(!v)})
+
         callback({success: true, note: note})
     }).catch( (e) => {
         console.log(e)

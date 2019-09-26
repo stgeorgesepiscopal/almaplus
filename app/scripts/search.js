@@ -153,7 +153,7 @@ export const searchHelp = function(query, callback) {
             n.forEach((node) => {
               helpResults.push(
                 {
-                  href: node.children[0].href,
+                  href: "http://help.getalma.com"+node.children[0].href,
                   title: encode(node.children[0].children[0].children[0].textContent.trim()),
                   content: encode(node.children[0].children[0].children[1].textContent.trim())
 

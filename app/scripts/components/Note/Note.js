@@ -6,6 +6,7 @@ import Box from '@material-ui/core/Box';
 import { Button, TextField, Switch, FormGroup, FormControlLabel, MenuItem, Select, InputLabel, Checkbox, Input, Chip, FormControl,  } from '@material-ui/core';
 
 import {startCase} from 'lodash'
+import linkifyHtml from 'linkifyjs/html';
 
 import { options, searchData, useStore, inputId } from '../../storage';
 
@@ -22,7 +23,10 @@ const useStyles = makeStyles(theme => ({
           flexWrap: 'wrap'
       },
       note : {
-        marginLeft: '5px'
+        marginLeft: '5px',
+        height: 'fit-content',
+        width: 'fit-content',
+        borderRadius: '6px'
       },
       noteh5: {
         fontSize: '12px !important',
@@ -100,17 +104,23 @@ export function Note(props) {
             //}
             await update(e.target.value);
           }
+
+        function createMarkup() { 
+          return { __html: linkifyHtml(body.replace(/(?:\r\n|\r|\n)/g, '<br>'), {format: (v) => v.length > 24 ? v.slice(8, 24) + '…' : v.slice(8) } ) }
+           
+          };
     
         
             return (
               <>
                 <li className={classes.note}>
-                  <p>{body}</p>
+                <p dangerouslySetInnerHTML={createMarkup()}></p>
                   <span className={classes.noteDate +" date dimmed"} >{date}</span>
                   <img src={chrome.runtime.getURL('images/icon-128.png')} alt="" className="photo profile-pic profile-pic-medium" />
                   <h5 className={classes.noteh5}>{author}</h5>
                   
                 </li>
+                
               </>
             );
         

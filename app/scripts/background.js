@@ -1,10 +1,21 @@
-import { options, searchData } from './storage';
+import { options, watchers, searchData } from './storage';
 import { clearBody, nodesFromXpath, newObjects, log, ms } from './util'
 import { sendMessage } from './alma'
 import {encode} from 'he'
 import {notifyAlmaStart} from './background-notifications'
 
 var settings = []
+
+String.prototype.escapeSpecialChars = function() {
+  return this.replace(/\\n/g, "\\n")
+             .replace(/\\'/g, "\\'")
+             .replace(/\\"/g, '\\"')
+             .replace(/\\&/g, "\\&")
+             .replace(/\\r/g, "\\r")
+             .replace(/\\t/g, "\\t")
+             .replace(/\\b/g, "\\b")
+             .replace(/\\f/g, "\\f");
+};
 
 
 
@@ -57,6 +68,11 @@ const stayAliveListener = (change, key) => {
   
 }
 
+const notesListener = (change, key) => {
+  changeReporter(change,key)
+  getNotes()
+}
+
 const optionsListeners = [
   {
     key: 'subdomain', listener: subdomainListener
@@ -98,6 +114,7 @@ const initialize = async function() {
 
   settings = await options.get()
   var request = new XMLHttpRequest();
+  
 
   
   
@@ -370,11 +387,12 @@ const getNotesGroup = async function(page) {
             const n = nodesFromXpath("//p", doc);
 
             n.forEach((p) => {
-              console.log("Node", p)
               
               if(hasNotes(p.textContent))
               {
-                const json = JSON.parse(p.textContent)
+                const json = JSON.parse(p.textContent.replace(/\n/g, "\\n"))
+                console.log("JSON")
+                console.log(json)
                 const dateStr = p.parentElement.children[0].textContent
                 const date = new Date()
                 
@@ -451,6 +469,7 @@ const getNotes = async function(i=0) {
     // Fill in default values for any unset settings.
 const main = async function() {
   settings = await options.get();
+  //searchData.notes.set([])
   
 
   return new Promise(function (resolve, reject) {
@@ -466,7 +485,8 @@ const main = async function() {
       
       // searchData.notes.get().then( (notes) => {console.log(notes)})
 
-      searchData.startStudents.addListener(changeReporter);
+      searchData.startStudents.addListener(changeReporter)
+      watchers.notesWatcher.addListener(changeReporter)
     
     resolve()
   } catch (e) {

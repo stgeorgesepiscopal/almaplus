@@ -34,6 +34,7 @@ const [processId, studentId, instanceId] = document.location.pathname.split("/")
 async function renderNotes() {
     
     const notes = await searchData.notes.get()
+    //console.log(notes)
     //const n = notes.map( (note) => { return {name: note.author, body: note.body, date: note.date, uuid: note.uuid } } ) 
     return notes.filter( note => note.person == studentId )
     

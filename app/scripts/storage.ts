@@ -70,6 +70,21 @@ export var searchData = StorageArea.create<SearchDocuments>({
     storageArea: 'local'
 });
 
+
+export interface WatcherDocuments {
+    notesWatcher: boolean;
+    
+};
+
+export var watchers = StorageArea.create<WatcherDocuments>({
+    defaults: {
+        notesWatcher: false,
+        
+    },
+    storageArea: 'local'
+});
+
+
 /**
  * Gets an ID that is unique to an input field.
  */
