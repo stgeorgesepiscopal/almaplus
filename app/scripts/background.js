@@ -69,6 +69,12 @@ const almaStartListener = (change, key) => {
   getProcesses(getStudentsFromProcesses)
 }
 
+const adminModeListener = (change, key) => {
+  changeReporter(change,key)
+  doInitialize()
+
+}
+
 const stayAliveListener = (change, key) => {
   
   changeReporter(change, key)
@@ -101,6 +107,9 @@ const optionsListeners = [
   },
   {
     key: 'stayAlive', listener: stayAliveListener
+  },
+  {
+    key: 'adminMode', listener: adminModeListener
   },
 ]
 
@@ -526,21 +535,35 @@ const main = async function() {
   })
 }
 
+var processInterval = undefined
+var notesInterval = undefined
 
 const doInitialize = function(redirect=true) {
     initialize().then(
       () => {
         main().then(
          () => {
-            if(settings.almaStart && (!settings.almaStartIgnoreApplicants || !settings.almaStartIgnoreEnrolled))
-              getProcesses(getStudentsFromProcesses);
+           clearInterval(processInterval)
+           clearInterval(notesInterval)
 
-            getGradeLevels()
-            getNotes()
+            if(settings.almaStart && (!settings.almaStartIgnoreApplicants || !settings.almaStartIgnoreEnrolled)){
+              getProcesses(getStudentsFromProcesses);
+              getNotes()
+              processInterval = setInterval(getProcesses, ms(5), getStudentsFromProcesses);
+              notesInterval = setInterval(getNotes, ms(1));
+            }
+
+            if(settings.adminMode){
+              getGradeLevels()
+              setInterval(getGradeLevels, ms(60));
+            }
+
+            
+            
           
-            setInterval(getProcesses, ms(5), getStudentsFromProcesses);
-            setInterval(getGradeLevels, ms(60));
-            setInterval(getNotes, ms(1));
+            
+            
+            
           }
         ).catch( e => {throw e});
         

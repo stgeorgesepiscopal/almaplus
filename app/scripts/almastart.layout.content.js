@@ -76,7 +76,7 @@ ReactDOM.render(
    injectScript('', 'html', 'script',`
    
     var checkExist = setInterval(function() {
-        if (document.querySelector('#notes')) {
+        if (document.querySelector('#notes') && document.querySelector('#addNoteButton') ) {
             document.getElementById("notes").addEventListener("click", () => {
                 document.getElementsByClassName("pure-g")[1].style.display="none"
                 document.getElementById("notes-div").style.display = "block"

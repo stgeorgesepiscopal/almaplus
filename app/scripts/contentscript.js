@@ -6,6 +6,24 @@ async function getOptions() {
 
     injectScript('', 'html', 'script',`
 
+    function nodesFromXpath(xpath, doc=document) {
+        // var xpath = "//tr[td[text()='No Record']]/td[2]/a";
+        var result = document.evaluate(
+          xpath,
+          doc,
+          null,
+          XPathResult.ANY_TYPE,
+          null
+        );
+        var node,
+          nodes = [];
+        while ((node = result.iterateNext())) {
+          nodes.push(node);
+        }
+        return nodes;
+      
+      }
+
     function getUrlVars(url) {
         var vars = {};
         var parts = url.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -31,7 +49,39 @@ async function getOptions() {
 
     var extensionId = "${browser.runtime.id}";
 
+    var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
 
+    const fetchQueriesAgain = async function(i=0) {
+        var response = await fetch("https://sges.getalma.com/reports/queue?types=2,7", {
+                        "credentials":"include",
+                        "headers":{
+                            "accept":"*/*",
+                            "accept-language":"en-US,en;q=0.9",
+                            "x-requested-with":"XMLHttpRequest"
+                        },
+                        "referrer":"https://sges.getalma.com/reports",
+                        "referrerPolicy":"no-referrer-when-downgrade",
+                        "body":null,
+                        "method":"GET",
+                        "mode":"cors"
+                    })
+        var json = await response.json();
+        var body = json.Message.html;
+        const parser = new DOMParser()
+        var doc = parser.parseFromString(body, "text/html")
+
+        if (nodesFromXpath("//div/ul/li", doc).length != nodesFromXpath("//li/ul[contains(@class,'downloads')]", doc).length)
+                {
+                    console.log("Try again in 2s ["+i+"s elapsed]")
+                    await wait(2000)
+                    return fetchQueriesAgain(i+2)
+                } else {
+                    console.log("Return json")
+                    return json
+                }
+
+
+    }
 
     const sendMessage = async function(message) {
         
@@ -52,18 +102,13 @@ async function getOptions() {
                 try {
                     searchResults = false;
                     console.log("in readyState")
-                    //////////////////////////////////////
-                    // THIS IS ACTIONS FOR YOUR REQUEST //
-                    //             EXAMPLE:             //
-                    //////////////////////////////////////
-                    // var data = JSON.parse(_this.responseText); // {"fields": ["a","b"]}
+                    
                     var data = []
-                    // data[0].ProfileUrl = "https://sges.getalma.com/directory/search?q=maddie"
+                    
                     console.log(getUrlParam(_this.responseURL, "q"));
                     console.log("Sending message")
-                    
                         
-                        chrome.runtime.sendMessage(extensionId, {search: getUrlParam(_this.responseURL, "q")},
+                    chrome.runtime.sendMessage(extensionId, {search: getUrlParam(_this.responseURL, "q")},
                         function(response) {
                             console.log("Response: ",response);
                         if (!response.success) {
@@ -79,23 +124,31 @@ async function getOptions() {
                         if (_onreadystatechange) _onreadystatechange.apply(__this, arguments);
 
                         });
-                        
-                        console.log("After sendMessage")
-                        console.log(searchResults)
-
-                   
-
-                   
                     
-                    
-                    
-                    /////////////// END //////////////////
                 } catch (e) {}
 
                 console.log('Caught! :)', method, URL/*, _this.responseText*/);
-            }
-            else
-            {
+            } else if  (_this.readyState === 4 && _this.status === 200 && ~String(URL).indexOf('queue')) {
+
+                const json = JSON.parse(_this.responseText) 
+                const body = json.Message.html
+                const parser = new DOMParser()
+                var doc = parser.parseFromString(body, "text/html")
+
+                if (nodesFromXpath("//div/ul/li", doc).length != nodesFromXpath("//li/ul[contains(@class,'downloads')]", doc).length)
+                {
+                    document.querySelector('.fa-sync').classList.add('fa-spin')
+                    fetchQueriesAgain().then( (results) => {
+                        Object.defineProperty(_this, 'responseText', {value: JSON.stringify(results)});
+                        if (_onreadystatechange) _onreadystatechange.apply(__this, arguments);
+                    })
+
+                }
+
+                
+
+
+            } else { 
                 if (_onreadystatechange) _onreadystatechange.apply(this, arguments);
             }
             // call original callback
