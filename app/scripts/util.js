@@ -126,7 +126,7 @@ export function injectScript(file_path, tag='html', type='script', text='') {
       
   }
   if (text == '') {
-      script.setAttribute(tag_type == 'script' ? 'src': 'href', file_path);
+      script.setAttribute(tag_type == 'script' ? 'src': 'href', chrome.runtime.getURL(file_path));
   }
   else {
       script.innerHTML = text;

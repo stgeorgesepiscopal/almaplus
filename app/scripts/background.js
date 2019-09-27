@@ -17,12 +17,25 @@ String.prototype.escapeSpecialChars = function() {
              .replace(/\\f/g, "\\f");
 };
 
-
+const doDefaultBlocking = () => { return {cancel: true}; }
 
 const doBlocking = () => { return {cancel: true}; }
 
 const changeReporter = (change, key) => {
   console.log(`${key} changed from ${change.oldValue} to ${change.newValue}`);
+}
+
+const activateDefaultBlocking = (subdomain) => {
+
+  browser.webRequest.onBeforeRequest.addListener(
+    doDefaultBlocking,
+    {
+      urls: ["https://"+subdomain+".getalma.com/js/alma-table-freeze.js*"], // https://sges.getalma.com/js/alma-table-freeze.js?v=v8.16.0
+      types: ["script"] 
+    },
+    ["blocking"]
+  )
+
 }
 
 const deactivateBlocking = () => {
@@ -495,6 +508,7 @@ const main = async function() {
       if (settings.stayAlive) {
         activateBlocking(settings.subdomain)
       }
+      activateDefaultBlocking(settings.subdomain)
 
       addOptionsListeners()
       //getNotesGroup(0).then((r)=>{ searchData.notes.set(r) });

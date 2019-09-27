@@ -6,27 +6,38 @@ import { IStorageAccessor, StorageListener } from '@spadin/webextension-storage'
 
 
 export interface OptionItems {
-    subdomain: string;
+    subdomain: string;      // General settings
     apiStudentUUID: string;
-    displayChat: boolean;
-    signature: string;
-    htmlMessaging: boolean;
+    defaultSearch:string;
+    adminMode: boolean;
     almaStart: boolean;
-    almaStartPDFButtons: boolean;
+    debug: boolean;
+
+    displayChat: boolean;   // Other
+    stayAlive: boolean;
+
+    reportingComplianceTab: boolean; // Reports
+    reportingTranscriptsTab: boolean;
+
+    attendanceIgnoreClasses:Array<string>;  //
+    
+    htmlMessaging: boolean; // Messaging
+    signature: string;
+    
+    almaStartPDFButtons: boolean;           // Alma Start
     almaStartIgnoreEnrolled: boolean;
     almaStartIgnoreApplicants: boolean;
     almaStartBrowserNotifications: boolean;
     almaStartEmailNotifications: boolean;
     almaStartIncludeNotesInSearch: boolean;
     almaStartNewNoteTemplate: string;
-    stayAlive: boolean;
-    googleApiCredentials: string;
+    
+    googleApiCredentials: string;   // Google API
     googleApiAccount: string;
     sheetId: string;
-    defaultSearch:string;
-    attendanceIgnoreClasses:Array<string>;
-    userUUID: string;
-    debug: boolean;
+
+    userUUID: string;   // Hidden
+    
 }
 
 export var options = StorageArea.create<OptionItems>({
@@ -44,6 +55,8 @@ export var options = StorageArea.create<OptionItems>({
         almaStartEmailNotifications: false,
         almaStartIncludeNotesInSearch: false,
         almaStartNewNoteTemplate: '',
+        reportingComplianceTab: false,
+        reportingTranscriptsTab: true,
         stayAlive: false,
         googleApiCredentials: '',
         googleApiAccount: '',
@@ -51,7 +64,8 @@ export var options = StorageArea.create<OptionItems>({
         defaultSearch: 'search',
         attendanceIgnoreClasses: [],
         userUUID: '',
-        debug: false
+        debug: false,
+        adminMode: false,
     },
     storageArea: 'sync'
 });

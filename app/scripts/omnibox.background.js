@@ -38,7 +38,23 @@ chrome.omnibox.onInputEntered.addListener(function(text) {
     if ( text.indexOf('http') == -1) {
         text = topResult.content;
     }
-    chrome.tabs.create({ url: text });
+    chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true
+    }, function(tabs) {
+        // and use that tab to fill in out title and url
+        var tab = tabs[0];
+        if(~tab.url.indexOf('getalma.com')) {
+          // already on Alma, change the location
+          chrome.tabs.update(tab.id, {url: text});
+        } else {
+          // not on Alma, open new tab
+          chrome.tabs.create({ url: text });
+        }
+        //console.log(tab.url);
+        //alert(tab.url);
+    });
+    
   });
 
 chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {

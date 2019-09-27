@@ -104,6 +104,23 @@ function App() {
 
   }
 
+  function searchOptions(isAdmin){
+    if(isAdmin){
+      return [
+        {label: "Directory", value:"search"}, 
+        {label: "Alma Start", value:"start"}, 
+        {label: "Location", value:"locate"}
+      ]
+
+    } else {
+      return [
+        {label: "Directory", value:"search"}, 
+        {label: "Location", value:"locate"}
+      ]
+
+    }
+
+  }
   
 
   
@@ -128,7 +145,7 @@ function App() {
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="simple tabs example" variant="fullWidth" indicatorColor="primary"
           textColor="primary">
             <Tab label="Basic Options" {...a11yProps(0)} />
-            <Tab label="Attendance" {...a11yProps(1)} />
+            <Tab label="Attendance" {...a11yProps(1)} style={{display: ((values['adminMode']) ? '' : 'none') }} />
             <Tab label="Messaging" {...a11yProps(2)} />
             <Tab label="Other" {...a11yProps(3)} />
             <Tab label="Alma Start" {...a11yProps(4)} style={{display: ((values['almaStart']) ? 'block' : 'none') }} />
@@ -149,15 +166,18 @@ function App() {
                 endAdornment: <InputAdornment position="end">.getalma.com</InputAdornment>,
               }}
             />
-            <Option type="text" name="apiStudentUUID"  />
-            <Option type="checkbox" name="almaStart" />
-            <Option type="select" name="defaultSearch" menuItems={[{label: "Directory", value:"search"}, {label: "Alma Start", value:"start"}, {label: "Location", value:"locate"}]} />
-            <Option type="checkbox" name="debug" />
+            <Option type="text" name="apiStudentUUID" style={{display: ((values['adminMode']) ? '' : 'none') }}  />
+            <Option type="checkbox" name="adminMode" label="School Admin Mode?" />
+            <Option type="checkbox" name="almaStart" style={{display: ((values['adminMode']) ? '' : 'none') }} />
+            <Option type="select" name="defaultSearch" menuItems={searchOptions(values['adminMode'])} />
+            <Option type="checkbox" name="debug" style={{display: ((values['adminMode']) ? '' : 'none') }} />
           </TabPanel>
           
           {/* Attendance */}
           <TabPanel value={tabValue} index={1}> 
-            <Option type="multiselect" name="attendanceIgnoreClasses" menuItems={ gradeLevels }   />
+            <Option type="checkbox" name="reportingComplianceTab" label="Display Compliance Reporting Tab?" style={{display: ((values['adminMode']) ? '' : 'none') }}  />
+            <Option type="checkbox" name="reportingTranscriptsTab" label="Display Transcripts Reporting Tab?" style={{display: ((values['adminMode']) ? '' : 'none') }} />
+            <Option type="multiselect" name="attendanceIgnoreClasses" menuItems={ gradeLevels } style={{display: ((values['adminMode']) ? '' : 'none') }}  />
           </TabPanel>
 
           {/* Messaging */}
@@ -169,7 +189,7 @@ function App() {
           {/* Other */}
           <TabPanel value={tabValue} index={3}> 
             <Option type="checkbox" name="displayChat" label="Display Support Chat Icon?"  />
-            <Option type="checkbox" name="stayAlive" lable="Prevent Logging Out?"  />
+            <Option type="checkbox" name="stayAlive" label="Prevent Auto-Logout?"  />
           </TabPanel>
 
           {/* Alma Start */}

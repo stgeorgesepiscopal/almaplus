@@ -62,6 +62,17 @@
     },
     {
       "matches": [
+        "http://*.getalma.com/*gradebook",
+        "https://*.getalma.com/*gradebook"
+      ],
+      "js": [
+        "scripts/gradebook.content.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    },
+    {
+      "matches": [
         "http://*.getalma.com/workflows/processes/*/*/*",
         "https://*.getalma.com/workflows/processes/*/*/*"
       ],
@@ -76,7 +87,7 @@
     }
   ],
   "web_accessible_resources": [
-    "pages/searchintercept.html",
+    "scripts/hijacks/alma-table-freeze.js",
     "images/icon-128.png"
   ],
   "externally_connectable": {
