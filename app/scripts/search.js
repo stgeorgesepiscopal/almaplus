@@ -3,18 +3,16 @@ import {encode} from 'he'
 import Fuse from 'fuse.js';
 import { options, searchData } from './storage';
 
-var subdomain = '';
-var apiStudent = '';
+var settings = {subdomain: 'seastar', apiStudentUUID: '5d93801df7769f6c6624600b' }
 
 async function initialize() {
-     subdomain = await options.subdomain.get();
-     apiStudent = await options.apiStudentUUID.get();
+    settings = await options.get()
 }
 initialize();
 
 
 export const searchByEmail = function(query, callback) {
-    var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
+    var url = "https://"+settings.subdomain+".getalma.com/student/"+settings.apiStudentUUID+"/search-parents?email=" + query ;
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -37,7 +35,7 @@ export const searchByEmail = function(query, callback) {
         //var url = "https://"+subdomain+".getalma.com/student/"+apiStudent+"/search-parents?email=" + query ;
     }
    
-    var url = "https://"+subdomain+".getalma.com/directory/search?q=" + query ;
+    var url = "https://"+settings.subdomain+".getalma.com/directory/search?q=" + query ;
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -47,11 +45,11 @@ export const searchByEmail = function(query, callback) {
         const results = JSON.parse(req.responseText)
         console.log(results)
         results.sort( (a,b) => {
-            var bigStringA = a.PreferredName ? a.PreferredName.toLowerCase().padEnd(20," ") : a.FirstName.toLowerCase().padEnd(20," ") +
+            var bigStringA = a.hasOwnProperty('PreferredName') ? a.PreferredName.toLowerCase().padEnd(20," ") : a.FirstName.toLowerCase().padEnd(20," ") +
                              a.FirstName.toLowerCase().padEnd(20," ") +
                              a.LastName.toLowerCase().padEnd(20," ") +
                              a.MiddleName.toLowerCase().padEnd(20," ")
-            var bigStringB = b.PreferredName ? b.PreferredName.toLowerCase().padEnd(20," ") : b.FirstName.toLowerCase().padEnd(20," ") +
+            var bigStringB = b.hasOwnProperty('PreferredName') ? b.PreferredName.toLowerCase().padEnd(20," ") : b.FirstName.toLowerCase().padEnd(20," ") +
                              b.FirstName.toLowerCase().padEnd(20," ") +
                              b.LastName.toLowerCase().padEnd(20," ") +
                              b.MiddleName.toLowerCase().padEnd(20," ")
@@ -106,7 +104,7 @@ export const searchWithLocations = function(query, callback) {
   }
 
 export const locateStudent = async function(studentId) {
-    var url = "https://"+subdomain+".getalma.com/home/get-student-schedule?studentId=" + studentId ;
+    var url = "https://"+settings.subdomain+".getalma.com/home/get-student-schedule?studentId=" + studentId ;
     
     var response = await fetch(url);
     var json = await response.json();
@@ -137,7 +135,10 @@ export const locateStudent = async function(studentId) {
 
 export const searchHelp = function(query, callback) {
 
-    const url = "http://help.getalma.com/en/?q="+query;
+    
+    const helpSubdomain = (settings.subdomain == "seastar" ? "help-demo" : "help")
+    const url = `http://${helpSubdomain}.getalma.com/en/?q=${query}`;
+
     var req = new XMLHttpRequest();
     req.open("GET", url, true);
     req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
@@ -152,7 +153,8 @@ export const searchHelp = function(query, callback) {
             n.forEach((node) => {
               helpResults.push(
                 {
-                  href: "http://help.getalma.com"+node.children[0].href,
+                  //href: "http://help.getalma.com"+node.children[0].pathname,
+                  href: `http://${helpSubdomain}.getalma.com${node.children[0].pathname}`,
                   title: encode(node.children[0].children[0].children[0].textContent.trim()),
                   content: encode(node.children[0].children[0].children[1].textContent.trim())
 

@@ -1,7 +1,7 @@
 import { saveAs } from 'file-saver';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import html2pdf from 'html2pdf.js'
-import pdfFromProcess from './pdfutil'
+import {pdfFromProcess} from './pdfutil'
 
 (async function() {
     
@@ -22,13 +22,11 @@ import pdfFromProcess from './pdfutil'
         iconElement.classList.add('lds-circle');
         pdfButtonText.innerHTML = "Generating...";
         pdfButtonProgress.innerHTML = "0%";
-        pdfFromProcess(document, pdfIcon)
-
-
-
-
-
-    
+        pdfFromProcess(document, false,(pPercent,pMessage) => {
+            if (pPercent) {  pdfButtonProgress.innerHTML = pPercent } else { iconElement.classList.remove('lds-circle'); }
+            if (pMessage) {  pdfButtonText.innerHTML = pMessage }
+            if (~pMessage.indexOf("Done")) { iconElement.classList.remove('lds-circle')}
+        })
 
     };
 

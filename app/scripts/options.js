@@ -104,6 +104,11 @@ function App() {
 
   }
 
+  async function resetNotifications() {
+    await searchData.startNotifications.set([])
+  }
+
+
   function searchOptions(isAdmin){
     if(isAdmin){
       return [
@@ -207,6 +212,7 @@ function App() {
           <TabPanel value={tabValue} index={5}> 
           <Typography>Warning! Don't mess with these unless you know what you're doing!</Typography>
             <Button onClick={resetNotes}>Reset Notes</Button>
+            <Button onClick={resetNotifications}>Reset Notifications</Button>
           </TabPanel>
 
         </form>

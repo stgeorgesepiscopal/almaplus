@@ -37,7 +37,7 @@ const useStyles = makeStyles(theme => ({
 
     }));
 
-    function getStyles(name, personName, theme) {
+    function getStyles(name='Option', personName='', theme) {
         return {
           fontWeight:
             personName.indexOf(name) === -1

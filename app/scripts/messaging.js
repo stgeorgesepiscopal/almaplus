@@ -1,7 +1,11 @@
 import { options, watchers, searchData } from './storage';
 import { search, searchByEmail, searchWithLocations, locateStudent, searchHelp, searchAlmaStart, obCommands, checkForCommands } from './search'
-import {log} from './util'
+import {log, injectScript} from './util'
 import {saveNote} from './alma'
+
+import {createHtmlPage} from './pdfutil'
+
+injectScript('/styles/normalize.css', 'html', 'link')
 
 const MAX_RESULTS = 15
 
@@ -198,6 +202,17 @@ async function doSaveNote(note, callback) {
 async function listenForMessages() {
 
     const settings = await options.get();
+
+    browser.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+            console.log("In first listener")
+            if (request.hasOwnProperty('render'))
+            {
+                sendResponse(createHtmlPage(request.render.html, request.render.cb));
+            }
+            return true;
+            
+        });
 
     browser.runtime.onMessageExternal.addListener(
         function(request, sender, sendResponse) {

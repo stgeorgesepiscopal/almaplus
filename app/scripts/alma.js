@@ -18,4 +18,10 @@ export const sendMessage = async(to, subject, body ) => {
     const url = `https://${settings.subdomain}.getalma.com/message/group/${settings.subdomain}_schoolcurrent_com`
     fetch(url, {"body":`{"Channels": ["1"], "UserIds":["${to}"], "Subject": "${subject}", "Message": "${body}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});   
 }
-//https://sges.getalma.com/student/5d67e14d70a9a1462f24cdc3/save-note
+
+export const saveMedical = async(student, alertMessage, notes) => {
+    var settings = await options.get()
+    const url = `https://${settings.subdomain}.getalma.com/student/${student}/medical-save`
+    fetch(url, {"body":`{"MedicalAlertMessage":"${alertMessage}", "MedicalNotes":"${notes}", "redirect":"1"}`, "method":"POST", "mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});
+
+}

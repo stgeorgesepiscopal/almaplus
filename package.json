@@ -1,6 +1,6 @@
 {
   "name": "almaplus",
-  "version": "2019.8.28.1",
+  "version": "2019.10.1b",
   "description": "Alma is an amazing SIS, but there are little things about it that would be more helpful for our school if they were slightly different. This extension attempts to bridge some of those gaps.",
   "scripts": {
     "dev": "webextension-toolbox dev",
@@ -29,6 +29,8 @@
     "file-saver": "^2.0.2",
     "fuse.js": "^3.4.5",
     "he": "^1.2.0",
+    "html-to-image": "^0.1.1",
+    "html2canvas": "^1.0.0-rc.5",
     "html2pdf.js": "^0.9.1",
     "image-webpack-loader": "^4.6.0",
     "license-checker-webpack-plugin": "0.0.9",

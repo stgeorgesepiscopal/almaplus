@@ -52,14 +52,14 @@ async function getOptions() {
     var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
 
     const fetchQueriesAgain = async function(i=0) {
-        var response = await fetch("https://sges.getalma.com/reports/queue?types=2,7", {
+        var response = await fetch("https://${settings.subdomain}.getalma.com/reports/queue?types=2,7", {
                         "credentials":"include",
                         "headers":{
                             "accept":"*/*",
                             "accept-language":"en-US,en;q=0.9",
                             "x-requested-with":"XMLHttpRequest"
                         },
-                        "referrer":"https://sges.getalma.com/reports",
+                        "referrer":"https://${settings.subdomain}.getalma.com/reports",
                         "referrerPolicy":"no-referrer-when-downgrade",
                         "body":null,
                         "method":"GET",
@@ -70,7 +70,7 @@ async function getOptions() {
         const parser = new DOMParser()
         var doc = parser.parseFromString(body, "text/html")
 
-        if (nodesFromXpath("//div/ul/li", doc).length != nodesFromXpath("//li/ul[contains(@class,'downloads')]", doc).length)
+        if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(), 'Generating') or contains(text(), 'New')]", doc).length > 0)
                 {
                     console.log("Try again in 2s ["+i+"s elapsed]")
                     await wait(2000)
@@ -135,7 +135,7 @@ async function getOptions() {
                 const parser = new DOMParser()
                 var doc = parser.parseFromString(body, "text/html")
 
-                if (nodesFromXpath("//div/ul/li", doc).length != nodesFromXpath("//li/ul[contains(@class,'downloads')]", doc).length)
+                if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(), 'Generating') or contains(text(), 'New')]", doc).length > 0)
                 {
                     document.querySelector('.fa-sync').classList.add('fa-spin')
                     fetchQueriesAgain().then( (results) => {
@@ -143,7 +143,7 @@ async function getOptions() {
                         if (_onreadystatechange) _onreadystatechange.apply(__this, arguments);
                     })
 
-                }
+                } else { if (_onreadystatechange) _onreadystatechange.apply(__this, arguments) }
 
                 
 

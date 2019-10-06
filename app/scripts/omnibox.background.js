@@ -5,8 +5,8 @@ import { options, searchData } from './storage';
 
 import { search, searchByEmail, searchWithLocations, locateStudent, searchHelp, searchAlmaStart, obCommands, checkForCommands } from './search'
 
-var subdomain = "sges";
-var apiStudent = "5d67e14d70a9a1462f24cdc3"
+var settings = [{subdomain: 'sges'}];
+
 var currentRequest = null;
 var topResult = '';
 var isLoggedIn = false;
@@ -30,6 +30,11 @@ function cleanEntry(entry) {
   return entry
 }
 
+async function getSettings() {
+  settings = await options.get()
+}
+
+getSettings()
  
 
 chrome.omnibox.onInputEntered.addListener(function(text) {
@@ -82,13 +87,15 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
       
   
       currentRequest = doWhat(searchText, function(json) {
+        getSettings()
+        
         var results = [];
         var entries = json;
         console.log("Debug Current Request", entries);
         if (entries.hasOwnProperty('ErrorCode') && entries.ErrorCode > 0) {
           isLoggedIn = false;
             results.push({
-                content: "https://"+subdomain+".getalma.com/",
+                content: "https://"+settings.subdomain+".getalma.com/",
                 description: "Log in to Alma"
             });
         }
@@ -127,7 +134,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
           isLoggedIn = true;
             for (var i = 0, entry; i < (entries.Message.length <= 4 ? entries.Message.length : 4) && (entry = entries.Message[i]); i++) {
                 entry = cleanEntry(entry)
-                var path = "https://"+subdomain+".getalma.com/parent/"+entry.id+"/bio";
+                var path = "https://"+settings.subdomain+".getalma.com/parent/"+entry.id+"/bio";
                 var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName+" ["+entry.EmailAddresses[0].EmailAddress+"]";
                 var regex1 = /<[^>]+>/;
                 var template_split = template.split(regex1);
@@ -144,7 +151,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
             
             for (var i = 0, entry; i < (entries.length <= 4 ? entries.length : 4) && (entry = entries[i]); i++) {
               entry = cleanEntry(entry)
-              var path = "https://"+subdomain+".getalma.com/"+entry.ProfileUrl;
+              var path = "https://"+settings.subdomain+".getalma.com/"+entry.ProfileUrl;
             var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName
             var regex1 = /<[^>]+>/;
             var template_split = template.split(regex1);
@@ -158,7 +165,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
                 
     
             results.push({
-                content: "https://"+subdomain+".getalma.com/"+entry.ProfileUrl ,
+                content: "https://"+settings.subdomain+".getalma.com/"+entry.ProfileUrl ,
                 description: description
             });
             }
@@ -167,7 +174,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
         //chrome.omnibox.setDefaultSuggestion({description: "<url>Top Results: </url>"+results[0].description});
         if(!isLoggedIn) {
           chrome.omnibox.setDefaultSuggestion({description: results[0].description});
-          chrome.tabs.create({url:"https://"+subdomain+".getalma.com/", active:true}, function(tab){
+          chrome.tabs.create({url:"https://"+settings.subdomain+".getalma.com/", active:true}, function(tab){
             console.log("Login") //chrome.tabs.remove(tab.id);
         });
         

@@ -148,7 +148,7 @@ const initialize = async function() {
         if (request.readyState !== 4) return;
         if (request.status >= 200 && request.status < 300) {
           try {
-            const result = request.responseText.match(/"user_id":"([^"]*)"/)[1]
+            const result = request.responseText.match(/user_id: "([^"]*)"/)[1]
             options.userUUID.set(result);
             console.log("UUID", result)
             chrome.browserAction.setBadgeText({text: ``})

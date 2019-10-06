@@ -2,7 +2,7 @@
   "name": "__MSG_appName__",
   "short_name": "__MSG_appShortName__",
   "description": "__MSG_appDescription__",
-  "version": "2019.9.26.1",
+  "version": "2019.10.1.2",
   "manifest_version": 2,
   "default_locale": "en",
   "icons": {
@@ -99,7 +99,8 @@
   ],
   "web_accessible_resources": [
     "scripts/hijacks/alma-table-freeze.js",
-    "images/icon-128.png"
+    "images/icon-128.png",
+    "styles/normalize.css"
   ],
   "externally_connectable": {
     "matches": ["*://*.getalma.com/*"]

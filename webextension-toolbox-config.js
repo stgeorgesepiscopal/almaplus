@@ -32,7 +32,6 @@ module.exports = {
         // the browser to cache them between builds.
         const mode = dev ? 'development' : 'production.min';
 
-        
         // Fix for duplicate modules in bundles when some of our dependencies
         // are installed via npm link.
         dedupeModules(config, [
