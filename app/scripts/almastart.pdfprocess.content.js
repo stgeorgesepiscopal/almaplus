@@ -22,8 +22,8 @@ import {pdfFromProcess} from './pdfutil'
         iconElement.classList.add('lds-circle');
         pdfButtonText.innerHTML = "Generating...";
         pdfButtonProgress.innerHTML = "0%";
-        pdfFromProcess(document, false,(pPercent,pMessage) => {
-            if (pPercent) {  pdfButtonProgress.innerHTML = pPercent } else { iconElement.classList.remove('lds-circle'); }
+        pdfFromProcess(document, false,(pPercent=0,pMessage='') => {
+            if (pPercent) {  pdfButtonProgress.innerHTML = parseInt(pPercent)+'%' } else { iconElement.classList.remove('lds-circle'); }
             if (pMessage) {  pdfButtonText.innerHTML = pMessage }
             if (~pMessage.indexOf("Done")) { iconElement.classList.remove('lds-circle')}
         })

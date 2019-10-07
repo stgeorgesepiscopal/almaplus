@@ -4,6 +4,24 @@ export function clearBody(body) {
     return body;
 }
 
+export function PromiseAllProgress(proms, progress_cb) {
+  console.log(proms)
+  let d = 0;
+  progress_cb(0);
+  for (const p of proms) {
+    if (p instanceof Promise) {
+    p.then(()=> {    
+      d ++;
+      progress_cb( (d * 100) / proms.length );
+    });
+  } else {
+    d ++;
+    progress_cb( (d * 100) / proms.length )
+  }
+}
+  return Promise.all(proms);
+}
+
 export function isFunction(object) {
   return !!(object && object.constructor && object.call && object.apply);
  }

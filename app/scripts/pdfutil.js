@@ -1,5 +1,6 @@
 import { saveAs } from 'file-saver';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import {PromiseAllProgress} from './util'
 
 //import html2canvas from 'html2canvas'
 import { toPng, toJpeg, toBlob, toPixelData, toSvgDataURL } from 'html-to-image';
@@ -181,13 +182,14 @@ export const pdfAssemblePages = async (pages, cb) => {
 
     return PDFDocument.create().then( async (bigPdf) => {
         
-        const all_pages = await Promise.all(pages.flat())
+        cb(0,"Assembling")
+        
+        const all_pages = await PromiseAllProgress(pages.flat(), cb)
         
         
         all_pages.forEach( async (page, i) => {
-            //console.log("Create.then.pages",page,i)
+            cb( (i/all_pages.length) )
             await handlePage(bigPdf, page)
-            cb( ( (i+1) / all_pages.length ) + "% " , "Assembling ")
         })
         return bigPdf
     });
@@ -294,234 +296,19 @@ export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultPr
           xpath = "//li[contains(@class,'task')]";
         }
 
-    Promise.all(
+    cb(0,'Fetching')
+
+    var pageSets = await PromiseAllProgress(
         Array.from(completedTasks).map( (task, i) => {
-            cb(  50 + "% " , "Fetching ")
             return fetchAndReturnPages(task.dataset.href, cb)
-        })
-    ).then( (pageSets) => {
-        //console.log(pageSets)
-        return pdfAssemblePages([].concat([...pageSets]), cb)
-    }).then( async (pdf) => {
-        cb(100+"%", "Done ")
-        return saveAs(
+        }), cb
+    )
+    var pdf = await pdfAssemblePages([].concat([...pageSets]), cb)
+    await saveAs(
             new Blob([await pdf.save()]),
             studentName + " - " + processName + ".pdf"
             )
-        
-    }).then( () => {
-        cb(100+"%", "Done ")
-    })
-}
-
-
-export const pdfFromProcessOld = async (doc, pdfButton, progressCallback=defaultProgressCallback) => {
-var completedTasks = doc.getElementsByClassName("task-completed");
-    var allHTML = [];
-    var numDone = 0;
-    var totalTasks = completedTasks.length;
-   
-    const bigPdf = await PDFDocument.create();
-    for (var task of completedTasks) {
-        var taskUri = task.dataset.href;
-        // Replace 'task-details' with 'form' to get the actual form data (but it will break internal tasks, so needs catch)
-        var formUri = taskUri.replace("task-details","form");
-        // Headers to keep html page wrapper off of result
-        let headers = new Headers({
-            "Accept"       : "application/json",
-            "Content-Type" : "application/json",
-            "X-Requested-With": "XMLHttpRequest"
-        });
-        
-        // @todo: Account for multi-stage forms - right now assumes single stage per form
-
-        // From uri, detect task number 
-        var taskNum = parseInt(taskUri.match(/task=([0-9]+)/)[1]);
-        
-
-        await fetch(formUri, {method: "GET", headers: headers})
-            .then(async function(response) {
-                if(!response.ok){ // 500, try going back to 'task-details' instead of 'form' 
-                    return await fetch(taskUri, {method: "GET", headers: headers})
-                    .then(function(response) {
-                        if(response.ok) { // Must be internal task - grab it
-                            return response.json()
-                        }
-                    
-                    }).catch( (e) => {  // Otherwise just return empty and log to console for debug
-                        console.log(e)
-                        return {'Message': {'html': '', 'header':''}}
-                    })
-                    
-                    
-                }
-                
-            return response.json();
-        })
-            .then(function(myJson) {
-            //console.log(myJson);
-            var jsonHTML = myJson.Message.html;
-            jsonHTML = jsonHTML.replace(/form-section/g,"form-section-off");
-            jsonHTML = jsonHTML.replace(/<ul class/g,"<ul style=\"display:none;\" class");
-
-            if(!myJson.Message.hasOwnProperty('header')){
-                myJson.Message['header'] = 'Internal Task'
-                jsonHTML = '<div class="task-details">'+jsonHTML+'</div>'
-                jsonHTML = jsonHTML.replace(/<div class="hd"/g,"<div style=\"display:none;\" class=\"hd\"");
-            }
-            //jsonHTML = '<span class="page-break"><span>'+jsonHTML
-
-            //console.log(jsonHTML);
-            //var files = jsonHTML.match(/<a href="(\/workflows\/processes\/.*\/get-file\?id=[a-zA-z0-9]*)">/g);
-            var files = jsonHTML.match(/\/workflows\/processes\/.*\/get-file\?id=[a-zA-z0-9]*/g);
-            if (files) {
-                totalTasks += files.length;
-                for (var file of files) {
-                    fetch(file).then(function(response) {
-
-                        return response.blob(); }
-                                     ).then(async function(blob) {
-                        //console.log(blob.type);
-                        let reader = new FileReader();
-                        reader.readAsArrayBuffer(blob);
-                        reader.onload = async function(e) {
-
-                        //blob.arrayBuffer().then(async function(myBuffer){
-                            if (blob.type === "application/pdf") {
-                        const pdf = await PDFDocument.load(e.target.result);
-                        //console.log(pdf);
-                        const numPages = pdf.getPages().length;
-
-                        const copiedPages = await bigPdf.copyPages(pdf, Array.from(Array(numPages).keys()));
-                        copiedPages.forEach((page) => {
-                            bigPdf.addPage(page);
-                        });
-                            }
-                            else if (blob.type === "image/jpeg") {
-
-                                // Embed the JPG image bytes and PNG image bytes
-                                const jpgImage = await bigPdf.embedJpg(e.target.result)
-
-                                // Get the width/height of the JPG image scaled down to 25% of its original size
-                                const jpgDims = jpgImage.scale(.5)
-
-                                // Add a blank page to the document
-                                const page = bigPdf.addPage([jpgDims.width, jpgDims.height])
-
-                                // Draw the JPG image in the center of the page
-                                page.drawImage(jpgImage, {
-                                    x: page.getWidth() / 2 - jpgDims.width / 2,
-                                    y: page.getHeight() / 2 - jpgDims.height / 2,
-                                    width: jpgDims.width,
-                                    height: jpgDims.height,
-                                });
-
-                            }
-                        
-                            numDone += 1;
-                            progressCallback(parseInt(100 * (numDone / (totalTasks + 3) )).toString() + "%")
-                            //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 3) )).toString() + "%";
-                        if (numDone === totalTasks){
-                            
-                            html2pdf().set({
-                                html2canvas:  { scale: 2 },
-                                pagebreak: { before: '.page-break', avoid: ['div','h1','.form-section-offs'] }
-                                //pagebreak: { before: '.page-break' }
-                            }).from(cssInfo+"<div style=\"padding:100px;\">"+allHTML.join(" ")+"</div>").output('datauristring').then(async function (pdfAsString) {
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 2))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 2) )).toString() + "%")
-                                const htmlPdf = await PDFDocument.load(pdfAsString);
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1.5))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1.5) )).toString() + "%")
-                                const numPages = bigPdf.getPages().length;
-                                const copiedPages = await htmlPdf.copyPages(bigPdf, Array.from(Array(numPages).keys()));
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1.2))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1.2) )).toString() + "%")
-                                copiedPages.forEach((page) => {
-                                    htmlPdf.addPage(page);
-                                });
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1) )).toString() + "%")
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1))).toString() + "%";
-                                //const pdfUrl = URL.createObjectURL(
-                                //    new Blob([await htmlPdf.save()], { type: 'application/pdf' }),
-                                //);
-                                var studentName = document.getElementsByClassName("fn")[0].innerText;
-                    var processName = document.getElementById("page-header").innerText;
-                    saveAs(new Blob([await htmlPdf.save()]), studentName+" - "+processName+".pdf");
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / totalTasks)).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks) )).toString() + "%")
-                                //iconElement.classList.remove('lds-circle');
-                                //pdfButtonText.innerHTML = "PDF Saved!";
-                                //pdfButtonProgress.innerHTML = "";
-                                progressCallback("", "PDF Saved!")
-                                //htmlPdf.save();
-                            });
-
-
-                            // const bigPdf = await PDFLib.PDFDocument.load(FormPdf);
-                            // bigPdf.addPage(pdf);
-
-
-
-                        }
-                        //};
-
-                        };
-
-                    });
-                }
-            }
-            //console.log(files);
-            var jsonHeader = myJson.Message.header;
-            allHTML[taskNum] = "<span class=\"page-break\"></span><h1 >"+jsonHeader+"</h1>"+jsonHTML;
-            numDone += 1;
-            // pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 3))).toString() + "%";
-            progressCallback(parseInt(100 * (numDone / (totalTasks + 3) )).toString() + "%")
-
-            // <a href="/workflows/processes/5d0a73db7b86eb6fe20f6092/5d1a18b97b86eb0a7532e0f9/5d1a18b97b86eb39037d417d/get-file?id=5d372340a814e42a0d1872e1">
-
-
-            if (numDone === totalTasks){
-                //console.log(cssInfo+"<div style=\"padding:100px;\">"+allHTML.join(" ")+"</div>")
-                html2pdf().set({
-                                html2canvas:  { scale: 2 },
-                                pagebreak: { before: '.page-break', avoid: ['div','h1','.form-section-offs'] }
-                                //pagebreak: { before: '.page-break' }
-                            }).from(cssInfo+"<div style=\"padding:100px;\">"+allHTML.join(" ")+"</div>").output('datauristring').then(async function (pdfAsString) {
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 2))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 2) )).toString() + "%")
-                                const htmlPdf = await PDFDocument.load(pdfAsString);
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1.5))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1.5) )).toString() + "%")
-                                const numPages = bigPdf.getPages().length;
-                                const copiedPages = await htmlPdf.copyPages(bigPdf, Array.from(Array(numPages).keys()));
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1.2))).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1.2) )).toString() + "%")
-                                copiedPages.forEach((page) => {
-                                    htmlPdf.addPage(page);
-                                });
-                                progressCallback(parseInt(100 * (numDone / (totalTasks + 1) )).toString() + "%")
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / (totalTasks + 1))).toString() + "%";
-                                //const pdfUrl = URL.createObjectURL(
-                                //    new Blob([await htmlPdf.save()], { type: 'application/pdf' }),
-                                //);
-                                var studentName = document.getElementsByClassName("fn")[0].innerText;
-                    var processName = document.getElementById("page-header").innerText;
-                    saveAs(new Blob([await htmlPdf.save()]), studentName+" - "+processName+".pdf");
-                                //pdfButtonProgress.innerHTML = parseInt(100 * (numDone / totalTasks)).toString() + "%";
-                                progressCallback(parseInt(100 * (numDone / (totalTasks) )).toString() + "%")
-                                //iconElement.classList.remove('lds-circle');
-                                //pdfButtonText.innerHTML = "PDF Saved!";
-                                //pdfButtonProgress.innerHTML = "";
-                                progressCallback("", "PDF Saved!")
-                                //htmlPdf.save();
-                            });
-                    //saveAs(await htmlPdf.save(), "Form.pdf");
-                                //window.open(pdfUrl, '_blank');
-                                //htmlPdf.save();
-                            // });
-                // console.log(allHTML);
-            }
-        }).catch( (e) => { console.log(e) });
+    
+        cb(100, "Done")
     }
-}
+
