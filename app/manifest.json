@@ -73,6 +73,17 @@
     },
     {
       "matches": [
+        "http://*.getalma.com/reports/school-attendance*", 
+        "https://*.getalma.com/reports/school-attendance*"
+      ],
+      "js": [
+        "scripts/attendance.content.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    },
+    {
+      "matches": [
         "http://*.getalma.com/*gradebook",
         "https://*.getalma.com/*gradebook"
       ],

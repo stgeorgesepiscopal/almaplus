@@ -110,21 +110,18 @@ function App() {
 
 
   function searchOptions(isAdmin){
-    if(isAdmin){
-      return [
-        {label: "Directory", value:"search"}, 
-        {label: "Alma Start", value:"start"}, 
-        {label: "Location", value:"locate"}
-      ]
-
-    } else {
-      return [
-        {label: "Directory", value:"search"}, 
-        {label: "Location", value:"locate"}
-      ]
-
+    const opts = [
+      {label: "Directory", value:"search"}, 
+      {label: "Location", value:"locate"},
+      {label: "Go", value: "go"}
+    ]
+    
+    if(isAdmin){ 
+      opts.push({label: "Alma Start", value:"start"}) 
     }
 
+    return opts
+    
   }
   
 

@@ -1,7 +1,8 @@
 import { nodesFromXpath, clearBody } from './util'
 import {encode} from 'he'
-import Fuse from 'fuse.js';
-import { options, searchData } from './storage';
+import Fuse from 'fuse.js'
+import { options, searchData } from './storage'
+import {goPlaces} from './alma'
 
 var settings = {subdomain: 'seastar', apiStudentUUID: '5d93801df7769f6c6624600b' }
 
@@ -207,6 +208,16 @@ export const searchAlmaStartNotes = async function(query, callback) {
   callback({AlmaStartResults: await _searchAlmaStartNotes(query)})
 }
 
+const _searchGo = async function(query) {
+  const fuse = new Fuse(goPlaces, {keys: ['keyword']})
+  const res = fuse.search(query)
+  return res.length > 0 ? res : goPlaces
+}
+
+export const searchGo = async function(query, callback) {
+  callback({GoResults: await _searchGo(query)})
+}
+
 
 
 export const obCommands = {
@@ -219,6 +230,7 @@ export const obCommands = {
     'start': searchAlmaStart,
     'as': searchAlmaStart,
     'notes': searchAlmaStartNotes,
+    'go': searchGo,
   }
   
   

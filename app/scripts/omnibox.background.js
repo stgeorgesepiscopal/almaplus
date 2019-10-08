@@ -146,6 +146,19 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
                 });
             }
         }
+        else if (entries.hasOwnProperty('GoResults')){
+          isLoggedIn = true;
+          for (var i = 0, entry; i < (entries.GoResults.length <= 4 ? entries.GoResults.length : 4) && (entry = entries.GoResults[i]); i++) {
+            var path = "https://"+settings.subdomain+".getalma.com"+entry.url;
+            var template = entry.title+": "+" <dim>"+entry.url+"</dim>";
+            var description = template.replace(new RegExp(searchText,"gi"), "<match>$&</match>") ;
+            results.push({
+              content: path ,
+              description: description
+            });
+          }
+          
+        }
         else {
             isLoggedIn = true;
             
