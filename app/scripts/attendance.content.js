@@ -18,14 +18,15 @@ async function buildXpath() {
     }
 }
 
-var classCache = []
+var classCache = {}
 
 async function fetchAndUpdateAttendance(node) {
+    
     const updateNode = node;
-    console.log(classCache)
-
-    if (~classCache.indexOf(node.href)) {
-        updateNode.parentElement.parentElement.children[4].append(classCache[node.href])
+    const student = node.href.split('/')[4]
+    
+    if (classCache.hasOwnProperty(student)) {
+        updateNode.parentElement.parentElement.children[4].append(classCache[student])
     } else {
     
         var url=node.href.replace(/student\//g, "home/get-student-schedule?studentId=");
@@ -48,7 +49,7 @@ async function fetchAndUpdateAttendance(node) {
             const bodyF = clearBody(resF)
             const docF = parser.parseFromString(bodyF, "text/html")
             const nF = nodesFromXpath("//a[contains(@class,'fn')]",docF)
-            nF.forEach( nn => {classCache[nn.href] = n[0].cloneNode(true) })
+            nF.forEach( nn => {classCache[nn.href.split('/')[4]] = n[0].cloneNode(true) })
             
 
 
