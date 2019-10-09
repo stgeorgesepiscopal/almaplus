@@ -6,6 +6,8 @@ import {injectScript, nodesFromXpath, clearBody} from './util'
 import {Notes} from './components/Note/Note'
 import {options, searchData, useStore} from './storage'
 
+const throat = require('throat')(Promise);
+
 var settings = {}
 async function buildXpath() {
     settings = await options.get()
@@ -19,45 +21,85 @@ async function buildXpath() {
 }
 
 var classCache = {}
+var abortControllers = {}
+
+function updateClasses(node) {
+    const student = node.href.split('/')[4]
+    if (classCache.hasOwnProperty(student)) {
+        node.parentElement.parentElement.children[4].innerHTML = ''
+        node.parentElement.parentElement.children[4].append(classCache[student])
+    }
+}
 
 async function fetchAndUpdateAttendance(node) {
     
     const updateNode = node;
     const student = node.href.split('/')[4]
+    var n
     
     if (classCache.hasOwnProperty(student)) {
-        updateNode.parentElement.parentElement.children[4].append(classCache[student])
+        return student
     } else {
+        var controller = new AbortController()
+        var signal = controller.signal
+        abortControllers[student] = controller
     
         var url=node.href.replace(/student\//g, "home/get-student-schedule?studentId=");
         url = url.replace(/\/attendance.*/g,"&"+document.location.search.replace(/\?/g,"&"));
 
         if (settings.attendanceIgnoreClasses.indexOf(updateNode.parentElement.parentElement.children[2].innerText.trim()) <= -1) {
             
-            const klass = await fetch(url)
-            const res = await klass.json();
-            const body = clearBody(res.Message.html)
+            const res = await fetch(url, {signal})
+            const json = await res.json() 
+        
+            const body = clearBody(json.Message.html)
             const parser = new DOMParser();
             const doc = parser.parseFromString(body, "text/html");
-            const n = nodesFromXpath("//div[@class='class-info']", doc);
+            n = nodesFromXpath("//div[@class='class-info']", doc);
             
             const anchor = nodesFromXpath("//div[@class='class-info']//a",doc)
-            console.log(anchor)
             
-            const rosterF = await fetch(anchor[0].href + '/roster')
-            const resF = await rosterF.text()
-            const bodyF = clearBody(resF)
-            const docF = parser.parseFromString(bodyF, "text/html")
-            const nF = nodesFromXpath("//a[contains(@class,'fn')]",docF)
-            nF.forEach( nn => {classCache[nn.href.split('/')[4]] = n[0].cloneNode(true) })
+            const res2 = await fetch(anchor[0].href + '/roster')
+            const text = await res2.text()
+            const body2 = clearBody(text)
+            const doc2 = parser.parseFromString(body2, "text/html")
+            const nF = nodesFromXpath("//a[contains(@class,'fn')]",doc2)
+                        
+                        nF.forEach( nn => {
+                            let student = nn.href.split('/')[4]
+                            classCache[student] = n[0].cloneNode(true) 
+                            if (abortControllers.hasOwnProperty(student)){
+                                
+                                abortControllers[student].abort()
+                            }
+                        })
+                        nodesFromXpath("//tr[td[span[@class='attendance-nottaken']]]/td[2]/a[1]").forEach(
+                            (n) => {
+                                updateClasses(n)
+                            }
+                        )
+                    
+
+                    
+                    
+                    
+
+                }
+            return student
+            
+            
+            
+            
+            
+            
             
 
 
-            updateNode.parentElement.parentElement.children[4].append(n[0]);
-        };
+           // updateNode.parentElement.parentElement.children[4].append(n[0]);
+        }
     }
     
-  }
+  
 
 var newStyle = document.createElement("style");
   newStyle.innerHTML = `
@@ -105,14 +147,31 @@ font-size: 8pt;
   document.getElementsByTagName("head")[0].append(newStyle);
 
 buildXpath().then( async (xpath) => {
+    performance.mark("start-script")
     const removeNodes = nodesFromXpath(xpath, document)
     const notTaken = nodesFromXpath("//a[@data-codes='255']/strong")[0]
     notTaken.innerText = parseInt(notTaken.innerText) - removeNodes.length
     removeNodes.forEach( n => n.remove() )
 
-    for (let n of nodesFromXpath("//tr[td[span[@class='attendance-nottaken']]]/td[2]/a[1]") ) { 
-        console.log(n); await fetchAndUpdateAttendance(n); 
-    }
+    var lock = throat(4)
+
+    var data = Promise.allSettled(nodesFromXpath("//tr[td[span[@class='attendance-nottaken']]]/td[2]/a[1]").map( (n)=> { 
+        return lock(() => fetchAndUpdateAttendance(n)); 
+    }))
+    data.then( (d) => { 
+        nodesFromXpath("//tr[td[span[@class='attendance-nottaken']]]/td[2]/a[1]").forEach(
+            (n) => {
+                updateClasses(n)
+            }
+        )
+        performance.mark("end-script")
+        performance.measure("total-script-execution-time", "start-script", "end-script");
+        console.log(performance.getEntriesByName('total-script-execution-time'))
+    })
+    
+    
+        
+    
     
     
     
