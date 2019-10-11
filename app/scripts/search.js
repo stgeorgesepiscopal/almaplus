@@ -77,7 +77,7 @@ export const searchWithLocations = function(query, callback) {
       var entries = json;
       var justStudents = []
       for (var i = 0, entry; i < entries.length && (entry = entries[i]) && justStudents.length < 4; i++) {
-        if (entry.RoleId == 20) {
+        if (entry.RoleId == 20 || entry.RoleId == 50) {
           justStudents.push(entry)
         }
       }
@@ -87,7 +87,10 @@ export const searchWithLocations = function(query, callback) {
         
         console.log(entry);
         var thisIndex = index;
-        locateStudent(entry.id).then( (location)=>{
+        var doWhat;
+        if(entry.RoleId == 20) { doWhat = locateStudent } else if (entry.RoleId == 50) { doWhat = locateTeacher}
+
+        doWhat(entry.id).then( (location)=>{
           done++;
           chrome.omnibox.setDefaultSuggestion({description: "<url>Processing... </url>"+done+"of "+(justStudents.length)});
           justStudents[thisIndex]['Location'] = location;
@@ -103,6 +106,50 @@ export const searchWithLocations = function(query, callback) {
     return req;
 
   }
+
+export const locateTeacher = async function(teacherId) {
+  var url = `https://${settings.subdomain}.getalma.com/staff/${teacherId}/schedule`;
+
+  var response = await fetch(url);
+  var json = await response.text();
+  var body = clearBody(json);
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(body, "text/html");
+  var nodes = nodesFromXpath("//tr[td[contains(@class,'time')]]")
+  var now = new Date();
+  var returnMe = '';
+  var nextClass = '';
+
+  nodes.forEach( (n) => {
+      if(!returnMe) {
+        var t = n.children[0].textContent
+        t = t.replace(/\s+/g,' ')
+        var tM = t.match(/(\d+):(\d+) ([AP]M)[^\d]*(\d+):(\d+) ([AP]M)/)
+        var startTime = {h: 0, m: 0}
+        var endTime = {h: 0, m: 0}
+        if(tM.length === 7) {
+          startTime = {h: tM[1] + tM[3] === 'AM' ? 0 : 12, m: tM[2]}
+          endTime = {h: tM[4] + tM[6] === 'AM' ? 0 : 12, m: tM[5]}
+          var startDate = new Date()
+          startDate.setHours(startTime.h, startTime.m)
+          var endDate = new Date()
+          endDate.setHours(endTime.h, endTime.m)
+
+          if (startDate.getTime() < now.getTime() && now.getTime() < endDate.getTime()) {
+            returnMe = `${n.children[1].textContent.trim()} (${n.children[2].textContent.trim()}) ${tM[0]}`
+          } else if (startDate.getTime() > now.getTime() && !nextClass) {
+            nextClass = `Next: ${n.children[1].textContent.trim()} (${n.children[2].textContent.trim()}) ${tM[0]}`
+          }
+          
+
+        }
+    }
+  })
+
+  return returnMe ? returnMe : nextClass ? nextClass : 'Off';
+  
+
+}
 
 export const locateStudent = async function(studentId) {
     var url = "https://"+settings.subdomain+".getalma.com/home/get-student-schedule?studentId=" + studentId ;
