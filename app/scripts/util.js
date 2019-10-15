@@ -159,3 +159,13 @@ export function escapeDoubleQuotes(str) {
 export function ms(m){
   return m * 1000 * 60
 }
+
+// Change straight quotes to curly and double hyphens to em-dashes.
+export function smarten(a) {
+  a = a.replace(/(^|[-\u2014\s(\["])'/g, "$1\u2018");       // opening singles
+  a = a.replace(/'/g, "\u2019");                            // closing singles & apostrophes
+  a = a.replace(/(^|[-\u2014/\[(\u2018\s])"/g, "$1\u201c"); // opening doubles
+  a = a.replace(/"/g, "\u201d");                            // closing doubles
+  a = a.replace(/--/g, "\u2014");                           // em-dashes
+  return a
+};

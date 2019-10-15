@@ -1,9 +1,10 @@
 import { options, searchData } from './storage';
-import { escapeDoubleQuotes } from './util'
+import { escapeDoubleQuotes, smarten } from './util'
 
 export const saveNote = async (note ) => {
     var settings = await options.get()
     const url = `https://${settings.subdomain}.getalma.com/student/${settings.apiStudentUUID}/save-note`
+    note.body = smarten(note.body)
     return await fetch(url, {"body":`{"UserId":"${settings.apiStudentUUID}","RoleId":"20","Note":"${escapeDoubleQuotes(JSON.stringify(note))}"}`,"method":"POST","mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { return r }).catch( (e) => {throw e});   
 }
 
