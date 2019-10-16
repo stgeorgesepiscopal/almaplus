@@ -1,5 +1,5 @@
 import { options, searchData } from './storage';
-import { escapeDoubleQuotes } from './util'
+import { escapeDoubleQuotes, nodesFromXpath } from './util'
 
 export const saveNote = async (note ) => {
     var settings = await options.get()
@@ -25,6 +25,18 @@ export const saveMedical = async(student, alertMessage, notes) => {
     fetch(url, {"body":`{"MedicalAlertMessage":"${alertMessage}", "MedicalNotes":"${notes}", "redirect":"1"}`, "method":"POST", "mode":"cors"}).then( (r) => { return r.text() }).then( (r) => { console.log(r)});
 
 }
+
+export const getMedical = async(student) => {
+    var settings = await options.get()
+    const url = `https://${settings.subdomain}.getalma.com/reports/spreadsheets/student/get-complex-attribute-edit`
+    var json = { attribute: { Entity: "Student", DataPath: "MedicalNotes"
+        }, entityId: student }
+    var f = await fetch(url, {"body":JSON.stringify(json),"method":"POST","mode":"cors"})
+    var j = await f.json()
+    var b = j.Message.html.match(/<textarea class="edit" name="MedicalNotes" rows="7">(.*)<\/textarea>/)[1]
+    
+}
+
 
 export const goPlaces = [
         {keyword: 'directory', title: 'School Directory', url:`/directory`},
