@@ -27,6 +27,18 @@ export const saveMedical = async(student, alertMessage, notes) => {
 
 }
 
+export const getMedical = async(student) => {
+    var settings = await options.get()
+    const url = `https://${settings.subdomain}.getalma.com/reports/spreadsheets/student/get-complex-attribute-edit`
+    var json = { attribute: { Entity: "Student", DataPath: "MedicalNotes"
+        }, entityId: student }
+    var f = await fetch(url, {"body":JSON.stringify(json),"method":"POST","mode":"cors"})
+    var j = await f.json()
+    var b = j.Message.html.match(/<textarea class="edit" name="MedicalNotes" rows="7">(.*)<\/textarea>/)[1]
+    
+}
+
+
 export const goPlaces = [
         {keyword: 'directory', title: 'School Directory', url:`/directory`},
         {keyword: 'calendar', title: 'Calendar', url:`/calendar`},
