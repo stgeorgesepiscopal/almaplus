@@ -1,6 +1,6 @@
 {
   "name": "almaplus",
-  "version": "2019.10.15",
+  "version": "2019.10.17",
   "description": "Alma is an amazing SIS, but there are little things about it that would be more helpful for our school if they were slightly different. This extension attempts to bridge some of those gaps.",
   "scripts": {
     "dev": "webextension-toolbox dev",
