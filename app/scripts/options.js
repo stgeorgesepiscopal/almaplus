@@ -60,6 +60,9 @@ function App() {
     var values = [];
     var updates = [];
     
+    const getVersion = () => {
+      return browser.runtime.getManifest().version
+    }
 
     
     getGradeLevels()
@@ -135,6 +138,7 @@ function App() {
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" className={classes.title} noWrap>Alma+ Settings</Typography>
+            <Typography variant="subtitle2">v{getVersion()}</Typography>
             <Button className={classes.button} color="primary" size="small" onClick={closeWindow}>
               <CheckIcon></CheckIcon>
             </Button>
@@ -192,6 +196,8 @@ function App() {
           <TabPanel value={tabValue} index={3}> 
             <Option type="checkbox" name="displayChat" label="Display Support Chat Icon?"  />
             <Option type="checkbox" name="stayAlive" label="Prevent Auto-Logout?"  />
+            <Option type="checkbox" name="reportCardRevisions" label="Provide Report Card Revision Comments?"  />
+            <Option type="select" name="reportCardRevisionColor" menuItems={ [{value: 'purple', label: 'Purple'}, {value: 'black', label: 'Black'}, {value: 'red', label: 'Red'}, {value: 'green', label: 'Green'}] } style={{display: ((values['reportCardRevisions']) ? '' : 'none') }} />
           </TabPanel>
 
           {/* Alma Start */}

@@ -21,6 +21,15 @@ const doDefaultBlocking = () => { return {cancel: true}; }
 
 const doBlocking = () => { return {cancel: true}; }
 
+const doRedirect = () => {
+  
+    return {
+      redirectUrl: "https://"+settings.subdomain+".getalma.com/"
+    }
+  
+  
+}
+
 const changeReporter = (change, key) => {
   console.log(`${key} changed from ${change.oldValue} to ${change.newValue}`);
 }
@@ -32,6 +41,13 @@ const activateDefaultBlocking = (subdomain) => {
     {
       urls: ["https://"+subdomain+".getalma.com/js/alma-table-freeze.js*"], // https://sges.getalma.com/js/alma-table-freeze.js?v=v8.16.0
       types: ["script"] 
+    },
+    ["blocking"]
+  )
+  browser.webRequest.onBeforeRequest.addListener(
+    doRedirect,
+    {
+      urls: ["https://"+subdomain+".getalma.com/tools"]
     },
     ["blocking"]
   )
@@ -568,12 +584,33 @@ const doInitialize = function(redirect=true) {
         ).catch( e => {throw e});
         
       }
-    ).catch( e => { console.log(e);
+    ).catch( e => { 
+      
+      console.log(e);
+      
       if(redirect) {
-        chrome.tabs.create({url:"https://"+settings.subdomain+".getalma.com/", active:true}, function(tab){
-            console.log("Login") //chrome.tabs.remove(tab.id);
+
+        chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true
+        }, function(tabs) {
+            // and use that tab to fill in out title and url
+            var tab = tabs[0];
+            if(~tab.url.indexOf('getalma.com')) {
+              // already on Alma, change the location
+              chrome.tabs.update(tab.id, {url: "https://"+settings.subdomain+".getalma.com/"});
+            } else {
+              // not on Alma, open new tab
+              chrome.tabs.create({ url: "https://"+settings.subdomain+".getalma.com/", active:true }, function(tab){
+                console.log("Login") //chrome.tabs.remove(tab.id);
+            });
+            }
+            //console.log(tab.url);
+            //alert(tab.url);
         });
+
       }
+
       setTimeout(doInitialize, 10*1000, false); return e; } )
   }
 

@@ -34,7 +34,11 @@ export const getMedical = async(student) => {
         }, entityId: student }
     var f = await fetch(url, {"body":JSON.stringify(json),"method":"POST","mode":"cors"})
     var j = await f.json()
-    var b = j.Message.html.match(/<textarea class="edit" name="MedicalNotes" rows="7">(.*)<\/textarea>/)[1]
+    var medAlert = j.Message.html.match(/<textarea name="MedicalAlertMessage" [^>]+>(.*)<\/textarea>/)[1]
+    var medNotes = j.Message.html.match(/<textarea class="edit" name="MedicalNotes" [^>]+>(.*)<\/textarea>/)[1]
+    return { MedicalAlertMessage: medAlert,
+             MedicalNotes: medNotes,
+             redirect: "1" }
     
 }
 

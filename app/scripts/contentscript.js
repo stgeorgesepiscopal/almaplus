@@ -236,10 +236,18 @@ async function getOptions() {
 
             whenDefined(tinyMCE, 'activeEditor', function() {
                 //tinyMCE.activeEditor.targetElm.style.display = "block";
-                if (tinyMCE.activeEditor.targetElm.value == ""){
+                if (~document.location.href.indexOf('report-cards')){
+                    if (`+ (settings.reportCardRevisions ? `true` : `false`) +` && !~tinyMCE.activeEditor.targetElm.value.indexOf('p style="color: white')) {`+
+                    
+                    `
+                        try {tinyMCE.activeEditor.setContent(tinyMCE.activeEditor.targetElm.value+\`
+                        <p></p><p style="color: white; font-size: 14pt; padding: 2px; background-image: url('https://ac.stgnola.org/static/images/${settings.reportCardRevisionColor}.png');">Revision comments</p><p></p>
+                        \`);} catch (err) { console.log(err) }
+                    }
+                } else if (tinyMCE.activeEditor.targetElm.value == ""){
                     try { tinyMCE.activeEditor.setContent(\`<p></p><p>`+
                     settings.signature
-                    +`</p>\`)} catch (err) { console.log(err) }
+                    +`</p>\`);} catch (err) { console.log(err) }
                 }
                 tinyMCE.activeEditor.targetElm.oninput = bubbleUp;
                 tinyMCE.activeEditor.targetElm.parentElement.insertBefore(bubbleUpButton, tinyMCE.activeEditor.targetElm);

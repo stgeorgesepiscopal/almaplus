@@ -15,6 +15,8 @@ export interface OptionItems {
 
     displayChat: boolean;   // Other
     stayAlive: boolean;
+    reportCardRevisions: boolean;
+    reportCardRevisionColor: string;
 
     reportingComplianceTab: boolean; // Reports
     reportingTranscriptsTab: boolean;
@@ -66,6 +68,8 @@ export var options = StorageArea.create<OptionItems>({
         userUUID: '',
         debug: false,
         adminMode: false,
+        reportCardRevisions: false,
+        reportCardRevisionColor: 'purple'
     },
     storageArea: 'sync'
 });
