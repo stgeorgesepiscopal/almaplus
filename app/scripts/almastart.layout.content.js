@@ -31,6 +31,8 @@ document.getElementById("content").appendChild(notesDiv)
 
 const [processId, studentId, instanceId] = document.location.pathname.split("/").slice(Math.max(document.location.pathname.split("/").length - 3, 1))
 
+console.log(processId, studentId, instanceId);
+
 var newNoteTemplate = ''
 var templateLines = 4
 

@@ -42,6 +42,29 @@ export const getMedical = async(student) => {
     
 }
 
+export const uploadFile = async(student, file) => {
+    var settings = await options.get()
+    var fd = new FormData();
+    console.log(file);
+    fd.append("Files[]",file);
+    fetch(`https://${settings.subdomain}.getalma.com/student/${student}/file-cabinet-upload`, {'Content-Type': 'disable', 'method': 'POST', 'body': fd}).then(r=>{console.log(r); return r.text()}).then(r=>{console.log(r)});
+
+}
+
+export const deleteFromProcess = async( processId, studentId, instanceId) => {
+    // processId/studentId/instanceId ?
+    // https://sges.getalma.com/workflows/processes/5d164e9ca814e40c8273473e/5d0bb8077b86eb2cb164f971/5d164fe97b86eb52ac1111bd/delete
+    // https://sges.getalma.com/workflows/processes/5d164e9ca814e40c8273473e/5d0bb8007b86eb2cb3227e9f/5d16510a7b86eb52c74dbba6/delete
+    // https://sges.getalma.com/workflows/processes/5d0bb4a0a814e421957d8eaa/5d0bb8077b86eb2cb164f971/5d0bb8077b86eb2cb21d74ae/delete
+    var settings = await options.get()
+    var fd = new FormData();
+    fd.append("confirm","DESTROY");
+    fd.append("id", instanceId);
+    fetch(`https://${settings.subdomain}.getalma.com/workflows/processes/${processId}/${studentId}/${instanceId}/delete`, {'Content-Type': 'disable', 'method': 'POST', 'body': fd}).then(r=>{console.log(r); return r.text()}).then(r=>{console.log(r)});
+
+
+}
+
 
 export const goPlaces = [
         {keyword: 'directory', title: 'School Directory', url:`/directory`},

@@ -278,12 +278,13 @@ const fetchAndReturnPages = async (taskUri, cb) => {
 
 }
 
-const defaultProgressCallback = (pPercent=0, pMessage="Completed...") => {
+export const defaultProgressCallback = (pPercent=0, pMessage="Completed...") => {
     console.log(`${pPercent}% ${pMessage}`)
 }
 
-export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultProgressCallback) => {
-    var completedTasks = doc.getElementsByClassName("task-completed");
+export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultProgressCallback, returnFile=false) => {
+    var allCompletedTasks = doc.getElementsByClassName("task-completed");
+    console.log(completedTasks);
     var xpath, studentName, processName = "";
     studentName = doc.getElementsByClassName("fn")[0].innerText.trim();
         if (onlyHealth) {
@@ -295,6 +296,13 @@ export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultPr
           processName = doc.getElementById("page-header").innerText.trim();
           xpath = "//li[contains(@class,'task')]";
         }
+    if(onlyHealth) {
+        var completedTasks = Array.from(allCompletedTasks).filter(e=>{
+            return (~e.textContent.toLowerCase().indexOf('health') || ~e.textContent.toLowerCase().indexOf('medi'))
+        })
+    } else {
+        var completedTasks = Array.from(allCompletedTasks)
+    }
 
     cb(0,'Fetching')
 
@@ -304,11 +312,19 @@ export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultPr
         }), cb
     )
     var pdf = await pdfAssemblePages([].concat([...pageSets]), cb)
-    await saveAs(
+    if (returnFile) {
+        var f = new File([await pdf.save()], studentName + " - " + processName + ".pdf", {
+            type: "application/pdf"
+        })
+        cb(100, "Done");
+        return f
+    } else {
+        await saveAs(
             new Blob([await pdf.save()]),
             studentName + " - " + processName + ".pdf"
             )
     
-        cb(100, "Done")
+            cb(100, "Done")
+        }
     }
 

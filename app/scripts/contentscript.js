@@ -1,6 +1,8 @@
 import {options} from './storage'
 import {injectScript} from './util'
 
+injectScript('/scripts/hijacks/alma-table-freeze.js')
+
 async function getOptions() {
     const settings = await options.get() ;
 

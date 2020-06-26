@@ -82,6 +82,7 @@ const subdomainListener = (change, key) => {
 
 const almaStartListener = (change, key) => {
   changeReporter(change,key)
+  doInitialize()
   getProcesses(getStudentsFromProcesses)
 }
 
@@ -176,7 +177,7 @@ const initialize = async function() {
           }
           catch (e) {
             chrome.browserAction.setBadgeBackgroundColor({color: [200,6,22,200]});
-            chrome.browserAction.setBadgeText({text: `ERR`})
+            chrome.browserAction.setBadgeText({text: `LOGIN`})
             searchData.messages.set([{text: 'Log in to Alma'}])
             
 
