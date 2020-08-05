@@ -35,7 +35,7 @@
     "image-webpack-loader": "^4.6.0",
     "license-checker-webpack-plugin": "0.0.9",
     "linkifyjs": "^2.1.8",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "pdf-lib": "^1.0.1",
     "pdfjs-dist": "^2.1.266",
     "prop-types": "^15.7.2",
