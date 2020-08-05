@@ -209,6 +209,7 @@ function App() {
             <Option type="checkbox" name="almaStartBrowserNotifications"  />
             <Option type="checkbox" name="almaStartEmailNotifications"  />
             <Option type="text" name="almaStartNewNoteTemplate" multiline />
+            <Option type="select" name="almaStartFileNaming" menuItems={ [{value: 'grade-name-process', label: 'Grade - Name - Process'}, {value: 'name-process', label: 'Name - Process'}] } style={{display: ((values['almaStartPDFButtons']) ? '' : 'none') }} />
           </TabPanel>
 
           {/* Developer */}
