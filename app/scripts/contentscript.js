@@ -71,13 +71,19 @@ async function getOptions() {
         var body = json.Message.html;
         const parser = new DOMParser()
         var doc = parser.parseFromString(body, "text/html")
+        console.log("I am here")
 
-        if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(), 'Generating') or contains(text(), 'New')]", doc).length > 0)
-                {
+        if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc).length > 0) {
+                if(nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc)[0] == nodesFromXpath("//span[contains(@class,'status')]", doc)[0] ){
                     console.log("Try again in 2s ["+i+"s elapsed]")
                     await wait(2000)
                     return fetchQueriesAgain(i+2)
                 } else {
+                    console.log("Return json because it is old")
+                    return json
+                }
+
+            } else {
                     console.log("Return json")
                     return json
                 }

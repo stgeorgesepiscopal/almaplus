@@ -33,6 +33,7 @@ export interface OptionItems {
     almaStartEmailNotifications: boolean;
     almaStartIncludeNotesInSearch: boolean;
     almaStartNewNoteTemplate: string;
+    almaStartFileNaming: string;
     
     googleApiCredentials: string;   // Google API
     googleApiAccount: string;
@@ -57,6 +58,7 @@ export var options = StorageArea.create<OptionItems>({
         almaStartEmailNotifications: false,
         almaStartIncludeNotesInSearch: false,
         almaStartNewNoteTemplate: '',
+        almaStartFileNaming: 'name-process',
         reportingComplianceTab: false,
         reportingTranscriptsTab: true,
         stayAlive: false,

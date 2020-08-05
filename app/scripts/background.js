@@ -165,7 +165,8 @@ const initialize = async function() {
         if (request.readyState !== 4) return;
         if (request.status >= 200 && request.status < 300) {
           try {
-            const result = request.responseText.match(/user_id: "([^"]*)"/)[1]
+            //console.log(request.responseText)
+            const result = request.responseText.match(/user_id"?: ?"([^"]*)"/)[1]
             options.userUUID.set(result);
             console.log("UUID", result)
             chrome.browserAction.setBadgeText({text: ``})
@@ -593,11 +594,13 @@ const doInitialize = function(redirect=true) {
 
         chrome.tabs.query({
           active: true,
-          lastFocusedWindow: true
+          lastFocusedWindow: true,
+          currentWindow: true
         }, function(tabs) {
             // and use that tab to fill in out title and url
             var tab = tabs[0];
-            if(~tab.url.indexOf('getalma.com')) {
+            //console.log(tab)
+            if(('url' in tab) && ~tab.url.indexOf('getalma.com')) {
               // already on Alma, change the location
               chrome.tabs.update(tab.id, {url: "https://"+settings.subdomain+".getalma.com/"});
             } else {

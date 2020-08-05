@@ -135,6 +135,7 @@ export function Option(props) {
                 inputProps={{
                     name: name,
                     id: name,
+                    
                 }}
                 {...other}
                 >

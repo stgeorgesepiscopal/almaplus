@@ -1,6 +1,7 @@
 import { saveAs } from 'file-saver';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import {PromiseAllProgress} from './util'
+import { options } from './storage'
 
 //import html2canvas from 'html2canvas'
 import { toPng, toJpeg, toBlob, toPixelData, toSvgDataURL } from 'html-to-image';
@@ -92,6 +93,17 @@ export const createUnknownPage = async (blob, cb) => {
     `)
 }
 
+export const createEncryptedPage = async (cb) => {
+
+    //return createHtmlPage(`
+    return await offloadCreateHtmlPage(`
+    <div>
+        <h3>Encrypted PDF</h3>
+        <p>Alma+ cannot modify encrypted PDFs. Please download the file directly.</p>
+    </div>
+    `, cb)
+}
+
 export const createImagePage = async (blob, type, cb) => {
     return Promise.resolve({
         type: type,
@@ -118,7 +130,9 @@ export const createPDFPages = async (blob, cb) => {
             pages: pdf.getPages().length
         }
 
-    } )
+    } ).catch( (e) => {
+            return createEncryptedPage(cb)
+    })
 
 }
 
@@ -285,8 +299,10 @@ export const defaultProgressCallback = (pPercent=0, pMessage="Completed...") => 
 export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultProgressCallback, returnFile=false) => {
     var allCompletedTasks = doc.getElementsByClassName("task-completed");
     console.log(completedTasks);
-    var xpath, studentName, processName = "";
-    studentName = doc.getElementsByClassName("fn")[0].innerText.trim();
+    var xpath, studentName, studentFullName, processName, studentGrade = "";
+    studentFullName = doc.getElementsByClassName("fn")[0].innerText.trim();
+    studentName = studentFullName.split(' ').slice(1).join(' ') + ', ' + studentFullName.split(' ')[0]
+    studentGrade = doc.getElementsByClassName("category")[0].innerText.trim()
         if (onlyHealth) {
           processName =
             "HEALTH " + doc.getElementById("page-header").innerText.trim();
@@ -312,8 +328,14 @@ export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultPr
         }), cb
     )
     var pdf = await pdfAssemblePages([].concat([...pageSets]), cb)
+    
+    var fileNaming = await options.get('almaStartFileNaming')
+    
+    console.log(fileNaming)
+    var fileName = (fileNaming == 'grade-name-process' ? studentGrade + ' - ' : '') + studentName + " - " + processName + ".pdf"
+        
     if (returnFile) {
-        var f = new File([await pdf.save()], studentName + " - " + processName + ".pdf", {
+        var f = new File([await pdf.save()], fileName, {
             type: "application/pdf"
         })
         cb(100, "Done");
@@ -321,7 +343,7 @@ export const pdfFromProcess = async(doc=document, onlyHealth=false, cb=defaultPr
     } else {
         await saveAs(
             new Blob([await pdf.save()]),
-            studentName + " - " + processName + ".pdf"
+            fileName
             )
     
             cb(100, "Done")
