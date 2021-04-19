@@ -73,8 +73,8 @@ async function getOptions() {
         var doc = parser.parseFromString(body, "text/html")
         console.log("I am here")
 
-        if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc).length > 0) {
-                if(nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc)[0] == nodesFromXpath("//span[contains(@class,'status')]", doc)[0] ){
+        if (nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Validated') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc).length > 0) {
+                if(nodesFromXpath("//span[contains(@class,'status')][contains(text(),'Preparing') or contains(text(),'Validated') or contains(text(),'Pending') or contains(text(), 'Generating') or contains(text(), 'New') or contains(text(), 'Formatting')]", doc)[0] == nodesFromXpath("//span[contains(@class,'status')]", doc)[0] ){
                     console.log("Try again in 2s ["+i+"s elapsed]")
                     await wait(2000)
                     return fetchQueriesAgain(i+2)

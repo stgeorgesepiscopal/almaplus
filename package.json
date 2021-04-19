@@ -1,17 +1,22 @@
 {
   "name": "almaplus",
-  "version": "2019.11.7",
+  "version": "2020.2.18",
   "description": "Alma is an amazing SIS, but there are little things about it that would be more helpful for our school if they were slightly different. This extension attempts to bridge some of those gaps.",
   "scripts": {
     "dev": "webextension-toolbox dev",
     "build": "webextension-toolbox build"
   },
   "devDependencies": {
+    "@babel/preset-flow": "^7.12.13",
+    "@babel/preset-react": "^7.12.13",
     "@types/file-saver": "^2.0.1",
     "babel-plugin-react-html-attrs": "^2.1.0",
+    "ts-loader": "^6.2.2",
+    "typescript": "^3.9.9",
     "webextension-polyfill-ts": "^0.9.1",
-    "webextension-toolbox": "latest",
-    "webpack-cdn-inject": "^1.0.4"
+    "webextension-toolbox": "github:webextension-toolbox/webextension-toolbox",
+    "webpack-cdn-inject": "^1.0.4",
+    "webpack-watched-glob-entries-plugin": "^2.1.9"
   },
   "dependencies": {
     "@material-ui/core": "^4.3.3",
@@ -24,6 +29,7 @@
     "alasql": "^0.6.2",
     "clsx": "^1.0.4",
     "copy-webpack-plugin": "^5.0.4",
+    "crypto-js": "^4.0.0",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "file-loader": "^3.0.1",
     "file-saver": "^2.0.2",
@@ -44,9 +50,7 @@
     "react-text-mask": "^5.4.3",
     "source-map-loader": "^0.2.4",
     "throat": "^5.0.0",
-    "ts-loader": "^6.0.4",
     "tslint": "^5.19.0",
-    "tslint-loader": "^3.5.4",
-    "typescript": "^3.6.2"
+    "tslint-loader": "^3.5.4"
   }
 }

@@ -164,7 +164,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
             
             for (var i = 0, entry; i < (entries.length <= 4 ? entries.length : 4) && (entry = entries[i]); i++) {
               entry = cleanEntry(entry)
-              var path = "https://"+settings.subdomain+".getalma.com/"+entry.ProfileUrl;
+              var path = "https://"+settings.subdomain+".getalma.com"+entry.ProfileUrl;
             var template = entry.FirstName+" "+( entry.MiddleName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? entry.MiddleName + " " : "")+( entry.PreferredName != entry.FirstName && entry.PreferredName.toLowerCase().indexOf(searchText.toLowerCase()) > -1 ? "("+entry.PreferredName + ") " : "")+entry.LastName
             var regex1 = /<[^>]+>/;
             var template_split = template.split(regex1);
@@ -178,7 +178,7 @@ chrome.omnibox.onInputChanged.addListener(async function(text, suggest) {
                 
     
             results.push({
-                content: "https://"+settings.subdomain+".getalma.com/"+entry.ProfileUrl ,
+                content: "https://"+settings.subdomain+".getalma.com"+entry.ProfileUrl ,
                 description: description
             });
             }

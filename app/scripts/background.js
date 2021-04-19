@@ -238,7 +238,7 @@ const getProcesses = async function(callback) {
           n.forEach((node) => {
             helpResults.push(
               {
-                href: "https://"+subdomain+".getalma.com/"+node.getAttribute("href"),
+                href: "https://"+subdomain+".getalma.com"+node.getAttribute("href"),
                 title: encode(node.textContent.trim()),
                 
               }
@@ -273,11 +273,12 @@ const getGradeLevels = async function() {
           var n = nodesFromXpath('//input[contains(@name,"GradeLevels") and contains(@name,"Abbreviation")]', doc);
           
           var gradeLevels = []
+          console.log(n)
           n.slice(gradeLevelFirst, gradeLevelLast+1).forEach((node) => {
             gradeLevels.push(
               {
                 value: node.value,
-                label: node.parentElement.parentElement.children[1].children[0].value
+                label: node.parentElement.parentElement.parentElement.children[1].children[0].children[1].value
               }
             )
           });

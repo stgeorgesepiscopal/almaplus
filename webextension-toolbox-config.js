@@ -19,7 +19,15 @@ module.exports = {
         useSourceMap(config, dev);
 
         config.plugins.push(new IgnorePlugin(/(^fs$|cptable|jszip|xlsx|^es6-promise$|^net$|^https$|^os$|^crypto$|child_process|^tls$|^forever-agent$|^tough-cookie$|cpexcel|^path$|^request$|react-native|^vertx$)/));
+        config.resolve.extensions.push('.ts')
+        config.resolve.extensions.push('.tsx')
 
+        config.module.rules.push( {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        })
+        
         // Build TypeScript files and allow them as entry points.
         useTypescript(config);
 
